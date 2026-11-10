@@ -16,7 +16,10 @@ export class Items implements OnInit {
   protected readonly quantity = signal('');
   protected readonly items = signal<Item[]>([]);
   protected readonly error = signal<string | null>(null);
-  protected readonly cannotSubmit = computed(() => this.name().trim().length === 0);
+  protected readonly saving = signal(false);
+  protected readonly cannotSubmit = computed(
+    () => this.saving() || this.name().trim().length === 0,
+  );
 
   ngOnInit(): void {
     this.api.findAll().subscribe({
@@ -30,6 +33,7 @@ export class Items implements OnInit {
       return;
     }
     const quantity = this.quantity().trim();
+    this.saving.set(true);
     this.api
       .create({ name: this.name().trim(), quantity: quantity.length > 0 ? quantity : undefined })
       .subscribe({
@@ -38,9 +42,13 @@ export class Items implements OnInit {
           this.name.set('');
           this.quantity.set('');
           this.error.set(null);
+          this.saving.set(false);
           this.nameInput().nativeElement.focus();
         },
-        error: () => this.error.set('Der Artikel konnte nicht angelegt werden.'),
+        error: () => {
+          this.saving.set(false);
+          this.error.set('Der Artikel konnte nicht angelegt werden.');
+        },
       });
   }
 }

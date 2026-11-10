@@ -108,11 +108,11 @@ Alternativen über Backend und Frontend hinweg (4).
 Dateien:
 
 - `backend/pom.xml`: ändern, Test-Abhängigkeit `io.rest-assured:rest-assured` (Version aus der Quarkus-BOM).
-- `backend/src/main/resources/application.properties`: ändern, `quarkus.smallrye-openapi.store-schema-directory=../contracts`, `quarkus.smallrye-openapi.info-title=Einkaufsliste API`, `quarkus.smallrye-openapi.info-version=1.0.0`.
+- `backend/src/main/resources/application.properties`: ändern, `quarkus.smallrye-openapi.store-schema-directory=../contracts`, `quarkus.smallrye-openapi.info-title=Einkaufsliste API`, `quarkus.smallrye-openapi.info-version=1.0.0`, `quarkus.smallrye-openapi.auto-add-server=false` (sonst schreibt der Testlauf `servers`-Einträge in den Contract und der Build-Lauf nicht; der Contract wäre nicht reproduzierbar).
 - `backend/src/main/java/de/mmoller/einkaufsliste/item/Item.java`: neu, Record `Item(UUID id, String name, String quantity, boolean done)`.
-- `backend/src/main/java/de/mmoller/einkaufsliste/item/CreateItemRequest.java`: neu, Record mit `@NotBlank @Size(max = 100) String name`, `@Size(max = 50) String quantity`.
+- `backend/src/main/java/de/mmoller/einkaufsliste/item/CreateItemRequest.java`: neu, Record mit `@NotBlank @Size(max = 100) String name`, `@Size(max = 50) String quantity`; der Konstruktor trimmt beide Werte und setzt eine leere Menge auf `null`, damit die Längenprüfung nach dem Trim gilt.
 - `backend/src/main/java/de/mmoller/einkaufsliste/item/ItemRepository.java`: neu, `@ApplicationScoped`, Speicher im Arbeitsspeicher in Anlagereihenfolge (`Collections.synchronizedMap(new LinkedHashMap<>())`), `save`, `findAll`.
-- `backend/src/main/java/de/mmoller/einkaufsliste/item/ItemService.java`: neu, `create(CreateItemRequest)` trimmt, setzt leere Menge auf `null`, vergibt `UUID.randomUUID()`, `done=false`; `findAll()`.
+- `backend/src/main/java/de/mmoller/einkaufsliste/item/ItemService.java`: neu, `create(CreateItemRequest)` vergibt `UUID.randomUUID()`, `done=false`; `findAll()`.
 - `backend/src/main/java/de/mmoller/einkaufsliste/item/ItemResource.java`: neu, `@Path("/api/items")`, `POST` mit `@Valid`, antwortet 201 mit `Location`; `GET` liefert die Liste.
 - `backend/src/test/java/de/mmoller/einkaufsliste/item/ItemServiceTest.java`: neu, JUnit 5 ohne Quarkus-Start.
 - `backend/src/test/java/de/mmoller/einkaufsliste/item/ItemResourceTest.java`: neu, `@QuarkusTest` mit RestAssured.
@@ -120,7 +120,7 @@ Dateien:
 - `project-rules/backend.md`: ändern, Abschnitt APIs: der offene Satz zu `contracts/` verweist auf ADR 0001 und `make contracts`.
 - `contracts/openapi.yaml`: neu, generiert durch `make contracts`.
 - `.gitignore`: ändern, `contracts/openapi.json` (Quarkus schreibt neben YAML auch JSON; nur YAML ist der Contract).
-- `Makefile`: ändern, Ziel `contracts` (Backend-Build mit `-DskipTests package`, danach `openapi-typescript ../contracts/openapi.yaml -o src/app/shared/api.ts` und `prettier --write` auf die erzeugte Datei).
+- `Makefile`: ändern, Ziel `contracts` (Backend-Build mit `-DskipTests package`, danach `openapi-typescript ../contracts/openapi.yaml -o src/app/shared/api.ts`, `eslint --fix` und `prettier --write` auf die erzeugte Datei; `openapi-typescript` hat keine Option für die Indexsignaturen, die `consistent-indexed-object-style` meldet, der Fix-Lauf ist Teil der Generator-Pipeline, die Lint-Konfiguration bleibt unverändert).
 - `frontend/package.json`, `frontend/pnpm-lock.yaml`: ändern, Dev-Abhängigkeit `openapi-typescript`.
 - `frontend/src/app/shared/api.ts`: neu, generiert durch `make contracts`, Kopfzeile des Generators (`auto-generated`).
 - `frontend/proxy.conf.json`: neu, `/api` → `http://localhost:8080`.
@@ -152,7 +152,7 @@ Tests:
 | Kriterium | Test |
 |---|---|
 | A1 | `ItemResourceTest`: `createsItemWithQuantity`, `createsItemWithoutQuantity` |
-| A2 | `ItemResourceTest`: `rejectsBlankName`, `rejectsTooLongName`, `rejectsTooLongQuantity`, jeweils mit anschließendem `GET` |
+| A2 | `ItemResourceTest`: `rejectsBlankName`, `rejectsTooLongName`, `rejectsTooLongQuantity`, jeweils mit anschließendem `GET`; `acceptsBoundaryLengthsAfterTrim` |
 | A3 | `ItemResourceTest`: `listsItemsInCreationOrder`, `listsNothingAtStart` |
 | A4 | `ItemServiceTest`: `trimsNameAndQuantity`, `storesBlankQuantityAsNull` |
 | A5 | Browser: Startseite, Felder und Button sichtbar, Tab-Reihenfolge Name → Menge → Hinzufügen |

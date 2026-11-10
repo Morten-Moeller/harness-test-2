@@ -90,6 +90,21 @@ class ItemResourceTest {
         rejects("{\"name\":\"Käse\",\"quantity\":\"" + "b".repeat(51) + "\"}");
     }
 
+    @Test
+    @Order(8)
+    void acceptsBoundaryLengthsAfterTrim() {
+        String name = "a".repeat(100);
+        String quantity = "b".repeat(50);
+        given().contentType(ContentType.JSON)
+                .body("{\"name\":\"  " + name + "  \",\"quantity\":\"  " + quantity + "  \"}")
+                .when()
+                .post("/api/items")
+                .then()
+                .statusCode(201)
+                .body("name", equalTo(name))
+                .body("quantity", equalTo(quantity));
+    }
+
     private static void rejects(String body) {
         int before = countItems();
         given().contentType(ContentType.JSON)

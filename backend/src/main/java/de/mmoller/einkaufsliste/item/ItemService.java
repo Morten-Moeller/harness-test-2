@@ -14,19 +14,10 @@ public class ItemService {
     }
 
     public Item create(CreateItemRequest request) {
-        Item item = new Item(UUID.randomUUID(), request.name().trim(), normalizeQuantity(request.quantity()), false);
-        return repository.save(item);
+        return repository.save(new Item(UUID.randomUUID(), request.name(), request.quantity(), false));
     }
 
     public List<Item> findAll() {
         return repository.findAll();
-    }
-
-    private static String normalizeQuantity(String quantity) {
-        if (quantity == null) {
-            return null;
-        }
-        String trimmed = quantity.trim();
-        return trimmed.isEmpty() ? null : trimmed;
     }
 }

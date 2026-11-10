@@ -14,6 +14,28 @@ function anItem(overrides: Partial<Item> = {}): Item {
   };
 }
 
+describe('Items without a backend', () => {
+  it('shows an error when the list cannot be loaded', async () => {
+    await TestBed.configureTestingModule({
+      imports: [Items],
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    }).compileComponents();
+    const http = TestBed.inject(HttpTestingController);
+    const fixture = TestBed.createComponent(Items);
+    await fixture.whenStable();
+    http
+      .expectOne({ method: 'GET', url: '/api/items' })
+      .flush({}, { status: 500, statusText: 'Error' });
+    await fixture.whenStable();
+
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.querySelector('.error')?.textContent).toContain(
+      'Die Einkaufsliste konnte nicht geladen werden.',
+    );
+    http.verify();
+  });
+});
+
 describe('Items', () => {
   let fixture: ComponentFixture<Items>;
   let http: HttpTestingController;
@@ -42,6 +64,20 @@ describe('Items', () => {
   });
 
   afterEach(() => http.verify());
+
+  it('disables the button while the request is pending', async () => {
+    await type(nameInput(), 'Milch');
+    button().click();
+    await fixture.whenStable();
+
+    expect(button().disabled).toBe(true);
+    http
+      .expectOne({ method: 'POST', url: '/api/items' })
+      .flush(anItem(), { status: 201, statusText: 'Created' });
+    await fixture.whenStable();
+    expect(button().disabled).toBe(true);
+    expect(nameInput().value).toBe('');
+  });
 
   it('renders the form with labelled fields and the button', () => {
     expect(element().querySelector('label[for=item-name]')?.textContent).toContain('Name');
