@@ -1,0 +1,45 @@
+<form class="form" (ngSubmit)="submit()">
+  <div class="field">
+    <label for="item-name">Name</label>
+    <input
+      id="item-name"
+      name="name"
+      type="text"
+      maxlength="100"
+      autocomplete="off"
+      #nameInput
+      [ngModel]="name()"
+      (ngModelChange)="name.set($event)"
+    />
+  </div>
+  <div class="field">
+    <label for="item-quantity">Menge</label>
+    <input
+      id="item-quantity"
+      name="quantity"
+      type="text"
+      maxlength="50"
+      autocomplete="off"
+      [ngModel]="quantity()"
+      (ngModelChange)="quantity.set($event)"
+    />
+  </div>
+  <button type="submit" [disabled]="cannotSubmit()">Hinzufügen</button>
+</form>
+
+@if (error(); as message) {
+  <p class="error" role="alert">{{ message }}</p>
+}
+
+<ul class="items" aria-label="Artikel">
+  @for (item of items(); track item.id) {
+    <li class="item">
+      <span class="item-name">{{ item.name }}</span>
+      @if (item.quantity) {
+        <span class="item-quantity">{{ item.quantity }}</span>
+      }
+    </li>
+  } @empty {
+    <li class="empty">Noch keine Artikel.</li>
+  }
+</ul>
