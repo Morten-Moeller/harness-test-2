@@ -16,7 +16,7 @@ source_paths:
   - backend/src/main
 
 # Where the generated contracts live and which make target regenerates them. Empty = none.
-contracts_generate_target: ""
+contracts_generate_target: contracts
 
 # The size escalator: more changed lines than this raises low to medium.
 low_risk_max_lines: 200
