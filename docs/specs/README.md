@@ -5,7 +5,7 @@ Jede Änderung beginnt mit einer Spec (`harness/workflow.md`). Statuswerte: `dra
 
 | Nr | Titel | Risiko | Status | PR | Stand | Offene Fragen | Notiz |
 |---|---|---|---|---|---|---|---|
-| 0001 | Artikel anlegen | high | Review | #3 | 2026-11-10 | – | freigegeben in der Session |
+| 0001 | Artikel anlegen | high | fertig | #3 | 2026-11-10 | – | alle Kriterien erfüllt, Browser-Test auf Ersatzports 4201/8081 |
 
 ## Entscheidungen
 
