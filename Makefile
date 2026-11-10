@@ -14,7 +14,7 @@ endif
 MVN  := cd backend && ./mvnw -q -B -ntp
 PNPM := pnpm --dir frontend
 
-.PHONY: test typecheck lint install frontend-test backend-test frontend-typecheck backend-typecheck frontend-lint backend-lint format dev-frontend dev-backend
+.PHONY: test typecheck lint install frontend-test backend-test frontend-typecheck backend-typecheck frontend-lint backend-lint format contracts dev-frontend dev-backend
 
 install: ## Install the frontend dependencies
 	$(PNPM) install --frozen-lockfile
@@ -48,6 +48,12 @@ backend-lint:
 format: ## Format frontend and backend
 	$(PNPM) exec prettier --write src
 	$(MVN) spotless:apply
+
+contracts: ## Regenerate contracts/openapi.yaml and frontend/src/app/shared/api.ts (contracts/README.md)
+	$(MVN) -DskipTests package
+	$(PNPM) exec openapi-typescript ../contracts/openapi.yaml -o src/app/shared/api.ts
+	$(PNPM) exec eslint --fix src/app/shared/api.ts
+	$(PNPM) exec prettier --write src/app/shared/api.ts
 
 dev-frontend: ## Start the frontend dev server on http://localhost:4200
 	$(PNPM) start
