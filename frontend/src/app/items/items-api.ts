@@ -5,6 +5,7 @@ import { components } from '../shared/api';
 
 export type Item = components['schemas']['Item'];
 export type CreateItemRequest = components['schemas']['CreateItemRequest'];
+export type UpdateItemRequest = components['schemas']['UpdateItemRequest'];
 
 @Injectable({ providedIn: 'root' })
 export class ItemsApi {
@@ -16,5 +17,9 @@ export class ItemsApi {
 
   create(request: CreateItemRequest): Observable<Item> {
     return this.http.post<Item>('/api/items', request);
+  }
+
+  setDone(id: string, request: UpdateItemRequest): Observable<void> {
+    return this.http.patch<void>(`/api/items/${id}`, request);
   }
 }

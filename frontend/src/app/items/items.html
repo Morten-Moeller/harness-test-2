@@ -31,15 +31,36 @@
   <p class="error" role="alert">{{ message }}</p>
 }
 
+<div class="filter">
+  <label for="only-open">
+    <input
+      id="only-open"
+      type="checkbox"
+      #onlyOpenInput
+      [checked]="onlyOpen()"
+      (change)="onlyOpen.set(onlyOpenInput.checked)"
+    />
+    Nur offene anzeigen
+  </label>
+</div>
+
 <ul class="items" aria-label="Artikel">
-  @for (item of items(); track item.id) {
+  @for (item of visibleItems(); track item.id) {
     <li class="item">
-      <span class="item-name">{{ item.name }}</span>
+      <label class="item-check">
+        <input
+          type="checkbox"
+          #doneInput
+          [checked]="item.done"
+          (change)="toggleDone(item, doneInput)"
+        />
+        <span class="item-name" [class.done]="item.done">{{ item.name }}</span>
+      </label>
       @if (item.quantity) {
         <span class="item-quantity">{{ item.quantity }}</span>
       }
     </li>
   } @empty {
-    <li class="empty">Noch keine Artikel.</li>
+    <li class="empty">{{ emptyText() }}</li>
   }
 </ul>

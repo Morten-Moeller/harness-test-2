@@ -14,6 +14,9 @@ function anItem(overrides: Partial<Item> = {}): Item {
   };
 }
 
+const milch = anItem({ id: '11111111-1111-1111-1111-111111111111', name: 'Milch' });
+const brot = anItem({ id: '22222222-2222-2222-2222-222222222222', name: 'Brot', done: true });
+
 describe('Items without a backend', () => {
   it('shows an error when the list cannot be loaded', async () => {
     await TestBed.configureTestingModule({
@@ -75,6 +78,8 @@ describe('Items', () => {
       .expectOne({ method: 'POST', url: '/api/items' })
       .flush(anItem(), { status: 201, statusText: 'Created' });
     await fixture.whenStable();
+    http.expectOne({ method: 'GET', url: '/api/items' }).flush([anItem()]);
+    await fixture.whenStable();
     expect(button().disabled).toBe(true);
     expect(nameInput().value).toBe('');
   });
@@ -105,6 +110,10 @@ describe('Items', () => {
       statusText: 'Created',
     });
     await fixture.whenStable();
+    http
+      .expectOne({ method: 'GET', url: '/api/items' })
+      .flush([anItem({ name: 'Milch', quantity: '1 l' })]);
+    await fixture.whenStable();
 
     const rows = element().querySelectorAll('.item');
     expect(rows.length).toBe(1);
@@ -129,5 +138,140 @@ describe('Items', () => {
     );
     expect(nameInput().value).toBe('Milch');
     expect(element().querySelectorAll('.item').length).toBe(0);
+  });
+
+  it('shows the filter unchecked and the empty text', () => {
+    const filter = element().querySelector<HTMLInputElement>('#only-open')!;
+    expect(filter.checked).toBe(false);
+    expect(element().querySelector('label[for=only-open]')?.textContent).toContain(
+      'Nur offene anzeigen',
+    );
+    expect(element().querySelector('.empty')?.textContent).toContain('Noch keine Artikel.');
+  });
+});
+
+describe('Items with stored items', () => {
+  let fixture: ComponentFixture<Items>;
+  let http: HttpTestingController;
+
+  const element = (): HTMLElement => fixture.nativeElement as HTMLElement;
+  const rows = (): HTMLElement[] => Array.from(element().querySelectorAll<HTMLElement>('.item'));
+  const checkboxOf = (name: string): HTMLInputElement =>
+    rows()
+      .find((row) => row.querySelector('.item-name')?.textContent?.trim() === name)!
+      .querySelector<HTMLInputElement>('input[type=checkbox]')!;
+  const filter = (): HTMLInputElement => element().querySelector('#only-open')!;
+
+  const setFilter = async (checked: boolean): Promise<void> => {
+    filter().checked = checked;
+    filter().dispatchEvent(new Event('change'));
+    await fixture.whenStable();
+  };
+
+  const load = async (items: Item[]): Promise<void> => {
+    http.expectOne({ method: 'GET', url: '/api/items' }).flush(items);
+    await fixture.whenStable();
+  };
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [Items],
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    }).compileComponents();
+    http = TestBed.inject(HttpTestingController);
+    fixture = TestBed.createComponent(Items);
+    await fixture.whenStable();
+    await load([milch, brot]);
+  });
+
+  afterEach(() => http.verify());
+
+  it('renders a checkbox per item labelled with the name', () => {
+    expect(rows().length).toBe(2);
+    const checkbox = checkboxOf('Milch');
+    expect(checkbox.checked).toBe(false);
+    expect(checkbox.closest('label')?.textContent).toContain('Milch');
+    expect(checkboxOf('Brot').checked).toBe(true);
+  });
+
+  it('strikes through done items', () => {
+    const names = rows().map((row) => row.querySelector('.item-name')!);
+    expect(names[0].classList.contains('done')).toBe(false);
+    expect(names[1].classList.contains('done')).toBe(true);
+  });
+
+  it('marks an item as done and reloads the list', async () => {
+    checkboxOf('Milch').click();
+    await fixture.whenStable();
+
+    const request = http.expectOne({ method: 'PATCH', url: `/api/items/${milch.id}` });
+    expect(request.request.body).toEqual({ done: true });
+    request.flush(null, { status: 204, statusText: 'No Content' });
+    await fixture.whenStable();
+    await load([{ ...milch, done: true }, brot]);
+
+    expect(checkboxOf('Milch').checked).toBe(true);
+    expect(rows()[0].querySelector('.item-name')!.classList.contains('done')).toBe(true);
+  });
+
+  it('reopens a done item', async () => {
+    checkboxOf('Brot').click();
+    await fixture.whenStable();
+
+    const request = http.expectOne({ method: 'PATCH', url: `/api/items/${brot.id}` });
+    expect(request.request.body).toEqual({ done: false });
+    request.flush(null, { status: 204, statusText: 'No Content' });
+    await fixture.whenStable();
+    await load([milch, { ...brot, done: false }]);
+
+    expect(checkboxOf('Brot').checked).toBe(false);
+  });
+
+  it('shows an error when the backend rejects the change', async () => {
+    checkboxOf('Milch').click();
+    await fixture.whenStable();
+
+    http
+      .expectOne({ method: 'PATCH', url: `/api/items/${milch.id}` })
+      .flush({}, { status: 500, statusText: 'Error' });
+    await fixture.whenStable();
+    await load([milch, brot]);
+
+    expect(element().querySelector('.error')?.textContent).toContain(
+      'Der Artikel konnte nicht geändert werden.',
+    );
+    expect(checkboxOf('Milch').checked).toBe(false);
+  });
+
+  it('hides done items while only open is checked', async () => {
+    await setFilter(true);
+    expect(rows().map((row) => row.querySelector('.item-name')?.textContent?.trim())).toEqual([
+      'Milch',
+    ]);
+
+    await setFilter(false);
+    expect(rows().length).toBe(2);
+  });
+
+  it('sends no request when toggling the filter', async () => {
+    await setFilter(true);
+    await setFilter(false);
+
+    http.expectNone({ method: 'GET', url: '/api/items' });
+  });
+
+  it('shows Keine offenen Artikel when the filter hides everything', async () => {
+    checkboxOf('Milch').click();
+    await fixture.whenStable();
+    http
+      .expectOne({ method: 'PATCH', url: `/api/items/${milch.id}` })
+      .flush(null, { status: 204, statusText: 'No Content' });
+    await fixture.whenStable();
+    await load([{ ...milch, done: true }, brot]);
+
+    await setFilter(true);
+
+    expect(rows().length).toBe(0);
+    expect(element().querySelector('.empty')?.textContent).toContain('Keine offenen Artikel.');
   });
 });

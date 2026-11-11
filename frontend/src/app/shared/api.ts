@@ -65,6 +65,54 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/items/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /** Set Done */
+    patch: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: components['schemas']['UUID'];
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['UpdateItemRequest'];
+        };
+      };
+      responses: {
+        /** @description No Content */
+        204: {
+          headers: Record<string, unknown>;
+          content?: never;
+        };
+        /** @description Bad Request */
+        400: {
+          headers: Record<string, unknown>;
+          content?: never;
+        };
+        /** @description Not Found */
+        404: {
+          headers: Record<string, unknown>;
+          content?: never;
+        };
+      };
+    };
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -81,6 +129,9 @@ export interface components {
     };
     /** Format: uuid */
     UUID: string;
+    UpdateItemRequest: {
+      done: boolean;
+    };
   };
   responses: never;
   parameters: never;

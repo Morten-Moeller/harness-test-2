@@ -18,6 +18,11 @@ public class ItemRepository {
         return item;
     }
 
+    public boolean setDone(UUID id, boolean done) {
+        return items.computeIfPresent(id, (key, item) -> new Item(item.id(), item.name(), item.quantity(), done))
+                != null;
+    }
+
     public List<Item> findAll() {
         synchronized (items) {
             return new ArrayList<>(items.values());
