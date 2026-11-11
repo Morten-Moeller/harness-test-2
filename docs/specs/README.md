@@ -7,7 +7,7 @@ Jede Änderung beginnt mit einer Spec (`harness/workflow.md`). Statuswerte: `dra
 |---|---|---|---|---|---|---|---|
 | 0001 | Artikel anlegen | high | done | #3 | 2026-11-10 | – | alle Kriterien erfüllt, Browser-Test auf Ersatzports 4201/8081 |
 | 0002 | Harness 0.5.0 übernehmen | high | done | #4 | 2026-11-11 | – | Update von 0.3.1, manuelle Schritte aus dem Changelog |
-| 0003 | Grundregeln im Code von Feature 0001 umsetzen | medium | Review | – | 2026-11-11 | – | freigegeben in der Session |
+| 0003 | Grundregeln im Code von Feature 0001 umsetzen | medium | Review | #9 | 2026-11-11 | – | freigegeben in der Session |
 
 ## Entscheidungen
 
