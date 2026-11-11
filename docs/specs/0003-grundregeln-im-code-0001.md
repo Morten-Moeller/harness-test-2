@@ -104,22 +104,31 @@ Dateien:
 - `docs/architecture/overview.md`: ändern, Zeile zu Logging (JSON, Request-Id) im Querschnitt.
 - `project-rules/backend.md`: ändern, Abschnitt Errors, logging, configuration: JSON-Logs und
   Request-Id; Ids über `IdGenerator`.
+- `project-rules/testing.md`: ändern, Tabelle Areas: Zeilen für
+  `backend/src/main/java/de/mmoller/einkaufsliste/ids/` (Tests über `item/`, kein eigener Test,
+  T1.3) und `backend/src/main/java/de/mmoller/einkaufsliste/requestlog/`.
 
 Schritte:
 
 1. Abhängigkeiten in `pom.xml`, `IdGenerator`, `ItemService` auf `IdGenerator`.
 2. `RequestIdFilter` mit Logzeile, `application.properties`.
 3. `RequestIdFilterTest`: Header gesetzt, Header übernommen, ungültiger Header ersetzt.
-4. `ItemResourceTest`: `@TestMethodOrder` und `@Order` entfernen; Builder
-   `item(String name, String quantity)` liefert eine `Map` für den Body; pro Test ein Suffix aus
-   `UUID.randomUUID()` im Namen; `listsItemsInCreationOrder` legt zwei Artikel an und prüft die
-   Liste gefiltert nach dem Suffix; `listsNothingAtStart` entfällt.
-5. `rejects(...)`: statt Zählen prüft der Test, dass kein Artikel mit dem Namen der abgelehnten
-   Anfrage in der Liste steht (bei leerem Namen: kein Artikel mit leerem Namen).
+4. `ItemResourceTest`: `@TestMethodOrder` und `@Order` entfernen; Builder `anItem()` liefert
+   eine `Map` für den Body mit Vorgaben (Name `Artikel-<Suffix>`, Menge `null`), der Test setzt
+   nur die Werte, um die es geht (T3.4); pro Test ein Suffix aus `UUID.randomUUID()`;
+   `listsItemsInCreationOrder` legt zwei Artikel an und prüft die Liste gefiltert nach dem
+   Suffix; `listsNothingAtStart` entfällt.
+5. Ablehnungen als `@ParameterizedTest` mit einer Zeile pro Fall (leerer Name, fehlender Name,
+   Name zu lang, Menge zu lang; T1.3, T5.2). Statt Zählen prüft der Test, dass kein Artikel mit
+   dem Namen der abgelehnten Anfrage in der Liste steht (bei leerem Namen: kein Artikel mit
+   leerem Namen).
 6. Neuer Test `createsTimeOrderedIds` (A1).
 7. `ItemServiceTest`, `app.spec.ts`.
 8. `docs/architecture/overview.md`, `project-rules/backend.md`.
 9. `make check`, `make drift`, Prüfung A5 mit zufälliger Reihenfolge, Aufrufe A3 und A4.
+
+Testdaten: keine Zustände. Jeder Test legt seine Artikel selbst an; der Browser-Check läuft im
+Zustand `empty` (Backend neu gestartet), `project-rules/testing.md`.
 
 Tests:
 
@@ -130,7 +139,7 @@ Tests:
 | A3 | Aufruf: `make dev-backend`, `curl`, Konsolenzeile |
 | A4 | Aufruf: `java -jar`, erste Logzeile ist JSON |
 | A5 | Aufruf: `./mvnw test -Dtest=ItemResourceTest -Dsurefire.runOrder=random` |
-| A6 | Datei: `ItemResourceTest` ohne `"{\"name\"` |
+| A6 | Datei: `ItemResourceTest` ohne JSON-String im Body, Builder `anItem()` |
 | A7 | Datei: `ItemServiceTest`, `app.spec.ts` |
 
 ## Offene Fragen
