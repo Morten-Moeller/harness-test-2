@@ -1,6 +1,6 @@
 # 0003: Validierungsfehler mit dem Quarkus-Standardbody statt RFC 9457
 
-Status: proposed
+Status: accepted
 Datum: 2026-11-11
 Spec: docs/specs/0002-harness-0-5-0.md
 Ersetzt Grundregeln: A2.3

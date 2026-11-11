@@ -1,6 +1,6 @@
 # 0005: Deutsche Texte und Farbwerte direkt in Templates und CSS
 
-Status: proposed
+Status: accepted
 Datum: 2026-11-11
 Spec: docs/specs/0002-harness-0-5-0.md
 Ersetzt Grundregeln: A7.3, A7.4

@@ -1,6 +1,6 @@
 # 0002: Resource, Service und Repository pro Feature im Backend
 
-Status: proposed
+Status: accepted
 Datum: 2026-11-11
 Spec: docs/specs/0002-harness-0-5-0.md
 Ersetzt Grundregeln: A1.2, T1.1, T1.3

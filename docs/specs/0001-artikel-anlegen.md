@@ -1,7 +1,7 @@
 ---
 id: "0001"
 title: Artikel anlegen
-status: approved
+status: done
 risk: high
 adrs: ["0001"]
 owner: Morten Möller
