@@ -1,7 +1,7 @@
 ---
 id: "0003"
 title: Grundregeln im Code von Feature 0001 umsetzen
-status: approved
+status: done
 risk: medium
 adrs: ["0006", "0007"]
 owner: Morten Möller
