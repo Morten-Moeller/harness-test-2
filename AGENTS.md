@@ -22,7 +22,11 @@ workflow, the gates and the policies in `harness/` apply to every change.
   `/domain`, do not invent synonyms.
 - Contracts in `contracts/` are the agreement with other systems. Changes follow
   `contracts/README.md` and the skill `/contract`.
+- Baseline: `harness/architecture.md` (A1 to A7) and `harness/testing.md` (T1 to T7) hold in every
+    change. A deviation needs an ADR that names the rule number.
 - Stack rules: `project-rules/frontend.md`, `project-rules/backend.md`, `project-rules/testing.md`.
+- Test data only through the command in `project-rules/testing.md` (skill `test-data`). Never
+  write rows by hand.
 
 ## Hard constraints
 
@@ -31,6 +35,7 @@ workflow, the gates and the policies in `harness/` apply to every change.
 - Never hand-edit generated files. Regenerate them with the target named in
   `contracts/README.md`.
 - Never merge, approve a pull request, force-push or set labels. A person does that.
+- Never skip the git hooks (`--no-verify`).
 - Agents MUST NOT write comments in code.
 - MUST write in dead prose and simplified technical English in code and in conversation. No
   'carry', 'load-bearing' or other fancy words.
@@ -44,4 +49,5 @@ workflow, the gates and the policies in `harness/` apply to every change.
 ## Verification
 
 `make help` lists every target. Before a pull request: `make check` (test, typecheck, lint, sast,
-deps). A failing gate is reported with its output and is never edited to pass.
+deps, drift) and the end-to-end specs of the touched areas (`project-rules/testing.md`). A failing
+gate is reported with its output and is never edited to pass.
