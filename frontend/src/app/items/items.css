@@ -69,3 +69,20 @@ button:focus-visible {
 .item-quantity {
   color: #4b5563;
 }
+
+.filter {
+  margin-bottom: 0.5rem;
+}
+
+.filter label,
+.item-check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.item-name.done {
+  text-decoration: line-through;
+  color: #4b5563;
+}

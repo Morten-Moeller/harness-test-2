@@ -9,3 +9,4 @@ eine Spec sie ändert.
 | Einkaufsliste | Eine benannte Liste von Artikeln, die eine Person einkaufen will | `ShoppingList` | Liste, Einkaufszettel |
 | Artikel | Ein Eintrag auf einer Einkaufsliste mit Name und optionaler Menge | `Item` | Produkt, Position |
 | erledigt | Ein Artikel ist eingekauft; er bleibt auf der Liste, bis er gelöscht wird | `done` | abgehakt, gekauft, checked |
+| offen | Ein Artikel, der nicht erledigt ist | `done: false` | unerledigt, ausstehend, todo |

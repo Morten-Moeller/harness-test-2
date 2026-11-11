@@ -3,6 +3,7 @@ package de.mmoller.einkaufsliste.item;
 import de.mmoller.einkaufsliste.ids.IdGenerator;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.List;
+import java.util.UUID;
 
 @ApplicationScoped
 public class ItemService {
@@ -17,6 +18,10 @@ public class ItemService {
 
     public Item create(CreateItemRequest request) {
         return repository.save(new Item(ids.next(), request.name(), request.quantity(), false));
+    }
+
+    public boolean setDone(UUID id, boolean done) {
+        return repository.setDone(id, done);
     }
 
     public List<Item> findAll() {

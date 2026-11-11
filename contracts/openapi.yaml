@@ -36,6 +36,13 @@ components:
       type: string
       format: uuid
       pattern: "[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}"
+    UpdateItemRequest:
+      type: object
+      required:
+      - done
+      properties:
+        done:
+          type: boolean
 paths:
   /api/items:
     get:
@@ -68,6 +75,30 @@ paths:
         "400":
           description: Bad Request
       summary: Create
+      tags:
+      - Item Resource
+  /api/items/{id}:
+    patch:
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UUID"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateItemRequest"
+        required: true
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+      summary: Set Done
       tags:
       - Item Resource
 info:

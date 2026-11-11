@@ -48,6 +48,28 @@ class ItemResourceTest {
                 .then();
     }
 
+    private static ValidatableResponse patch(String id, Object body) {
+        var request = given().contentType(ContentType.JSON);
+        if (body != null) {
+            request = request.body(body);
+        }
+        return request.when().patch("/api/items/" + id).then();
+    }
+
+    private static Map<String, Object> stored(String id) {
+        List<Map<String, Object>> all = given().when()
+                .get("/api/items")
+                .then()
+                .statusCode(200)
+                .extract()
+                .jsonPath()
+                .getList("");
+        return all.stream()
+                .filter(item -> id.equals(item.get("id")))
+                .findFirst()
+                .orElseThrow();
+    }
+
     private static List<String> storedNames() {
         return given().when()
                 .get("/api/items")
@@ -104,6 +126,60 @@ class ItemResourceTest {
                 .toList();
 
         assertThat(own, equalTo(List.of("Eier-" + SUFFIX, "Butter-" + SUFFIX)));
+    }
+
+    @Test
+    void marksItemAsDone() {
+        String first =
+                post(anItem("Eier-done-" + SUFFIX)).statusCode(201).extract().path("id");
+        String second =
+                post(anItem("Butter-done-" + SUFFIX)).statusCode(201).extract().path("id");
+
+        patch(first, Map.of("done", true)).statusCode(204).body(equalTo(""));
+
+        Map<String, Object> item = stored(first);
+        assertThat(item.get("done"), is(true));
+        assertThat(item.get("name"), equalTo("Eier-done-" + SUFFIX));
+        assertThat(item.get("quantity"), nullValue());
+        List<String> own = storedNames().stream()
+                .filter(name -> name.endsWith("-done-" + SUFFIX))
+                .toList();
+        assertThat(own, equalTo(List.of("Eier-done-" + SUFFIX, "Butter-done-" + SUFFIX)));
+        assertThat(stored(second).get("done"), is(false));
+    }
+
+    @Test
+    void reopensItem() {
+        String id = post(anItem()).statusCode(201).extract().path("id");
+        patch(id, Map.of("done", true)).statusCode(204);
+
+        patch(id, Map.of("done", false)).statusCode(204);
+
+        assertThat(stored(id).get("done"), is(false));
+    }
+
+    @Test
+    void answers404ForUnknownItem() {
+        patch(UUID.randomUUID().toString(), Map.of("done", true)).statusCode(404);
+    }
+
+    static Stream<Arguments> invalidUpdates() {
+        Map<String, Object> doneNull = new HashMap<>();
+        doneNull.put("done", null);
+        return Stream.of(
+                Arguments.of("body without done", Map.of()),
+                Arguments.of("done null", doneNull),
+                Arguments.of("no body", null));
+    }
+
+    @ParameterizedTest(name = "rejects update with {0}")
+    @MethodSource("invalidUpdates")
+    void rejectsUpdateWithoutDone(String label, Map<String, Object> body) {
+        String id = post(anItem()).statusCode(201).extract().path("id");
+
+        patch(id, body).statusCode(400);
+
+        assertThat(stored(id).get("done"), is(false));
     }
 
     static Stream<Arguments> invalidBodies() {

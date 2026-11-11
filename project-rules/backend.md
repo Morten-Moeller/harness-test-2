@@ -28,7 +28,8 @@
 
 - Input is validated with Bean Validation annotations on the request types. A validation error is
   HTTP 400 with the Quarkus default body.
-- Not found is HTTP 404, raised as `jakarta.ws.rs.NotFoundException` in the service.
+- Not found: the service returns `false` or an empty result; the resource maps it to HTTP 404 with
+  `jakarta.ws.rs.NotFoundException` (A3.5, ADR 0008). The service knows nothing about HTTP.
 - Logging through `io.quarkus.logging.Log`. JSON on the console (`quarkus-logging-json`), text in
   `dev` and `test`. `RequestIdFilter` (package `requestlog`) puts the request id into the MDC key
   `requestId`, returns it in `X-Request-Id` and writes one line per request with method, path and
