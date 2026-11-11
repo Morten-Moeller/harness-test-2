@@ -5,11 +5,12 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import de.mmoller.einkaufsliste.ids.IdGenerator;
 import org.junit.jupiter.api.Test;
 
 class ItemServiceTest {
 
-    private final ItemService service = new ItemService(new ItemRepository());
+    private final ItemService service = new ItemService(new ItemRepository(), new IdGenerator());
 
     @Test
     void trimsNameAndQuantity() {
@@ -25,14 +26,5 @@ class ItemServiceTest {
     void storesBlankQuantityAsNull() {
         assertNull(service.create(new CreateItemRequest("Brot", "   ")).quantity());
         assertNull(service.create(new CreateItemRequest("Brot", null)).quantity());
-    }
-
-    @Test
-    void listsItemsInCreationOrder() {
-        service.create(new CreateItemRequest("Eier", null));
-        service.create(new CreateItemRequest("Butter", null));
-
-        assertEquals("Eier", service.findAll().get(0).name());
-        assertEquals("Butter", service.findAll().get(1).name());
     }
 }

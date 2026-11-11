@@ -19,6 +19,8 @@
 ## Data
 
 - Storage starts in memory. A database comes with its own spec and ADR (high risk: migrations).
+- Ids are UUIDv7 from `IdGenerator` (package `ids`, `java-uuid-generator`, ADR 0006). Never
+  `UUID.randomUUID()` for stored ids.
 - Personal data: none planned. If a spec adds some, it names where it is stored and how it is
   deleted.
 
@@ -27,7 +29,10 @@
 - Input is validated with Bean Validation annotations on the request types. A validation error is
   HTTP 400 with the Quarkus default body.
 - Not found is HTTP 404, raised as `jakarta.ws.rs.NotFoundException` in the service.
-- Logging through `io.quarkus.logging.Log`; no request bodies in the log.
+- Logging through `io.quarkus.logging.Log`. JSON on the console (`quarkus-logging-json`), text in
+  `dev` and `test`. `RequestIdFilter` (package `requestlog`) puts the request id into the MDC key
+  `requestId`, returns it in `X-Request-Id` and writes one line per request with method, path and
+  status. No request bodies and no query parameters in the log (ADR 0007).
 - Configuration in `application.properties`; no secret in the repository.
 
 ## APIs
