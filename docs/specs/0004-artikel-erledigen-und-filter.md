@@ -1,7 +1,7 @@
 ---
 id: "0004"
 title: Artikel erledigen und Filter
-status: approved
+status: done
 risk: high
 adrs: ["0008"]
 owner: Morten Möller
