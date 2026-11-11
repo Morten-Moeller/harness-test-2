@@ -11,3 +11,4 @@ Wann ein ADR nötig ist: `harness/policies/adr.md`. Vorlage: `0000-template.md`.
 | 0005 | Deutsche Texte und Farbwerte direkt in Templates und CSS | accepted | 2026-11-11 |
 | 0006 | UUIDv7 mit java-uuid-generator | accepted | 2026-11-11 |
 | 0007 | JSON-Logs mit quarkus-logging-json und Request-Id im MDC | accepted | 2026-11-11 |
+| 0008 | Zustandsänderungen eines Artikels über PATCH mit Teilobjekt und Antwort 204 | accepted | 2026-11-11 |
