@@ -40,8 +40,8 @@ public class RequestIdFilter implements ContainerRequestFilter, ContainerRespons
         String id = (String) request.getProperty(HEADER);
         if (id == null) {
             id = ids.next().toString();
-            MDC.put(MDC_KEY, id);
         }
+        MDC.put(MDC_KEY, id);
         response.getHeaders().putSingle(HEADER, id);
         Log.infof("%s %s -> %d", request.getMethod(), request.getUriInfo().getPath(), response.getStatus());
         MDC.remove(MDC_KEY);
