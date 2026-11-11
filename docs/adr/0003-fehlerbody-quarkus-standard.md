@@ -2,7 +2,7 @@
 
 Status: proposed
 Datum: 2026-11-11
-Spec: keine
+Spec: docs/specs/0002-harness-0-5-0.md
 Ersetzt Grundregeln: A2.3
 
 ## Kontext

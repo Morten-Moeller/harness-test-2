@@ -2,20 +2,19 @@
 
 Status: proposed
 Datum: 2026-11-11
-Spec: keine
-Ersetzt Grundregeln: A7.1, A7.2, T1.4
+Spec: docs/specs/0002-harness-0-5-0.md
+Ersetzt Grundregeln: A7.1, A7.2
 
 ## Kontext
 
 A7.1 legt Serverdaten in einen Query-Cache, A7.2 lässt einen Schreibzugriff die betroffenen
 Lesezugriffe ungültig machen statt von Hand nachzuladen. `project-rules/frontend.md` sieht
 Signals je Komponente und einen Service je Feature mit `HttpClient` vor; Feature 0001 hängt das
-neue Element nach dem POST selbst an die Liste (`frontend/src/app/items/items.ts`). Die Specs
-ersetzen das Backend mit `provideHttpClientTesting` (T1.4).
+neue Element nach dem POST selbst an die Liste (`frontend/src/app/items/items.ts`).
 
 ## Optionen
 
-### Option A: Signals je Komponente, HTTP-Testdoubles in den Specs
+### Option A: Signals je Komponente
 
 - Vorteile: Keine weitere Bibliothek; die Anwendung hat eine Ansicht und einen Endpunkt.
 - Nachteile: Jede Komponente lädt selbst; mit mehreren Ansichten entstehen doppelte Ladevorgänge
@@ -30,8 +29,8 @@ ersetzen das Backend mit `provideHttpClientTesting` (T1.4).
 
 Option A, solange eine Ansicht die Daten eines Features zeigt. Die erste Spec, in der zwei
 Ansichten dieselben Serverdaten brauchen, führt Option B ein und löst dieses ADR ab. In den
-Specs bleibt `HttpTestingController` das Double für das Backend: es läuft als eigener Prozess und
-ist aus Sicht der Frontend-Tests ein fremdes System.
+Specs bleibt `HttpTestingController` das Double für das Backend, das als eigener Prozess läuft;
+das entspricht T1.4 und ist keine Abweichung.
 
 ## Folgen
 
