@@ -10,7 +10,7 @@ Jede Änderung beginnt mit einer Spec (`harness/workflow.md`). Statuswerte: `dra
 | 0002 | Harness 0.5.0 übernehmen | high | done | #4 | 2026-11-11 | – | Update von 0.3.1, manuelle Schritte aus dem Changelog |
 | 0003 | Grundregeln im Code von Feature 0001 umsetzen | medium | done | #9 | 2026-11-11 | – | alle Kriterien erfüllt, kein Browser-Test nötig |
 | 0004 | Artikel erledigen und Filter | high | done | #11 | 2026-11-11 | – | alle Kriterien erfüllt, Browser-Test auf 4201 |
-| 0005 | Harness 0.6.0 übernehmen | high | draft | – | 2026-11-11 | – | verify vor dem Merge, G3 als Status verified |
+| 0005 | Harness 0.6.0 übernehmen | high | in Arbeit | – | 2026-11-11 | – | freigegeben in der Session |
 
 ## Entscheidungen
 
