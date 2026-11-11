@@ -8,3 +8,4 @@ osv-scanner-results.json
 .angular/
 target/
 coverage/
+contracts/openapi.json

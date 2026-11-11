@@ -1,0 +1,75 @@
+---
+openapi: 3.1.0
+components:
+  schemas:
+    CreateItemRequest:
+      type: object
+      required:
+      - name
+      properties:
+        name:
+          type: string
+          pattern: \S
+          maxLength: 100
+        quantity:
+          type: string
+          maxLength: 50
+    Item:
+      required:
+      - id
+      - name
+      - quantity
+      - done
+      type: object
+      properties:
+        id:
+          $ref: "#/components/schemas/UUID"
+        name:
+          type: string
+        quantity:
+          type:
+          - string
+          - "null"
+        done:
+          type: boolean
+    UUID:
+      type: string
+      format: uuid
+      pattern: "[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}"
+paths:
+  /api/items:
+    get:
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Item"
+      summary: List
+      tags:
+      - Item Resource
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateItemRequest"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Item"
+          description: Created
+        "400":
+          description: Bad Request
+      summary: Create
+      tags:
+      - Item Resource
+info:
+  title: Einkaufsliste API
+  version: 1.0.0

@@ -33,7 +33,10 @@
 ## APIs
 
 - Contract first: the endpoint is in the spec before the code. The OpenAPI document is generated
-  by Quarkus; how it lands in `contracts/` is decided with the first API spec.
+  by Quarkus from the Java types and annotations and written to `contracts/openapi.yaml` by
+  `make contracts` (`docs/adr/0001-openapi-contract-code-first.md`, `contracts/README.md`).
+  Response types and status codes that Quarkus cannot derive from the signature are declared with
+  MicroProfile OpenAPI annotations.
 
 ## Quality
 
