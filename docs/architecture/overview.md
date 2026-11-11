@@ -17,6 +17,8 @@ Keine fremden Systeme.
 
 ## Modulgrenzen
 
+Grundregeln: `harness/architecture.md` (A1 bis A7). Abweichungen: ADR 0002 bis 0005.
+
 - Das Frontend spricht nur über REST unter `/api` mit dem Backend; es kennt keine Backend-Klassen.
 - Das Backend kennt das Frontend nicht.
 - Im Backend: Resource → Service → Repository, nie in die Gegenrichtung (`project-rules/backend.md`).

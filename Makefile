@@ -1,5 +1,6 @@
 # Quality gates. The target names are the contract with CI (harness/quality-gates.md).
-# sast, deps, check and help come from harness/gates.mk.
+# sast, deps, drift, check, setup and help come from harness/gates.mk. e2e is a stub until the
+# project has end-to-end tests (project-rules/testing.md).
 #
 # Frontend: Angular in frontend/ (Node from .nvmrc, pnpm). Backend: Quarkus in backend/ (Java 21,
 # Maven wrapper). On macOS JAVA_HOME defaults to the installed Java 21.
@@ -14,7 +15,7 @@ endif
 MVN  := cd backend && ./mvnw -q -B -ntp
 PNPM := pnpm --dir frontend
 
-.PHONY: test typecheck lint install frontend-test backend-test frontend-typecheck backend-typecheck frontend-lint backend-lint format contracts dev-frontend dev-backend
+.PHONY: test typecheck lint e2e install frontend-test backend-test frontend-typecheck backend-typecheck frontend-lint backend-lint format contracts dev-frontend dev-backend
 
 install: ## Install the frontend dependencies
 	$(PNPM) install --frozen-lockfile
@@ -24,6 +25,9 @@ test: frontend-test backend-test ## Unit and integration tests
 typecheck: frontend-typecheck backend-typecheck ## Static type check
 
 lint: frontend-lint backend-lint ## Style and static rules
+
+e2e: ## User flows against the running application
+	@echo "make e2e: no end-to-end tests configured"
 
 frontend-test:
 	$(PNPM) exec ng test --watch=false
