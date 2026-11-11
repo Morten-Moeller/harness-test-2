@@ -35,6 +35,8 @@ change touches. Both sides are fast enough to run in full with `make test`.
 | `frontend/src/app/items/` | `frontend/src/app/items/*.spec.ts` | none |
 | `frontend/src/app/app.*` | `frontend/src/app/app.spec.ts` | none |
 | `backend/src/main/java/de/mmoller/einkaufsliste/item/` | `backend/src/test/java/de/mmoller/einkaufsliste/item/` | none |
+| `backend/src/main/java/de/mmoller/einkaufsliste/ids/` | through `backend/src/test/java/de/mmoller/einkaufsliste/item/` (no logic of its own, T1.3) | none |
+| `backend/src/main/java/de/mmoller/einkaufsliste/requestlog/` | `backend/src/test/java/de/mmoller/einkaufsliste/requestlog/` | none |
 
 ## End-to-end
 

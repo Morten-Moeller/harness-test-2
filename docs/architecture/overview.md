@@ -27,6 +27,8 @@ Grundregeln: `harness/architecture.md` (A1 bis A7). Abweichungen: ADR 0002 bis 0
 ## Querschnitt
 
 - Authentifizierung: keine, lokale Testanwendung.
-- Logging: Quarkus-Log im Backend, keine Request-Bodies.
+- Logging: JSON-Logs im Backend (`quarkus-logging-json`, Text in dev und test), pro Anfrage eine
+  Zeile mit Methode, Pfad und Status und die Request-Id aus `X-Request-Id` im MDC (ADR 0007).
+  Keine Request-Bodies, keine Query-Parameter.
 - Fehlerbehandlung: HTTP-Status nach `project-rules/backend.md`, das Frontend zeigt eine Meldung.
 - Konfiguration: `backend/src/main/resources/application.properties`, im Frontend keine.

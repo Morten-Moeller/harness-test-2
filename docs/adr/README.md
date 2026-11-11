@@ -9,3 +9,5 @@ Wann ein ADR nötig ist: `harness/policies/adr.md`. Vorlage: `0000-template.md`.
 | 0003 | Validierungsfehler mit dem Quarkus-Standardbody statt RFC 9457 | accepted | 2026-11-11 |
 | 0004 | Serverdaten im Frontend in Signals ohne Query-Cache | accepted | 2026-11-11 |
 | 0005 | Deutsche Texte und Farbwerte direkt in Templates und CSS | accepted | 2026-11-11 |
+| 0006 | UUIDv7 mit java-uuid-generator | accepted | 2026-11-11 |
+| 0007 | JSON-Logs mit quarkus-logging-json und Request-Id im MDC | accepted | 2026-11-11 |
