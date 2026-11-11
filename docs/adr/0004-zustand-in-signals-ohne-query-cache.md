@@ -1,6 +1,6 @@
 # 0004: Serverdaten im Frontend in Signals ohne Query-Cache
 
-Status: proposed
+Status: accepted
 Datum: 2026-11-11
 Spec: docs/specs/0002-harness-0-5-0.md
 Ersetzt Grundregeln: A7.1, A7.2
