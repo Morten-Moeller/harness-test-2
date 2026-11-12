@@ -1,7 +1,7 @@
 ---
 id: "0006"
 title: Mehrere Einkaufslisten mit Überschrift, nebeneinander oder untereinander
-status: approved
+status: done
 risk: high
 adrs: ["0010"]
 owner: Morten Möller
