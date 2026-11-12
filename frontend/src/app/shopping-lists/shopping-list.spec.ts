@@ -329,6 +329,12 @@ describe('ShoppingListPanel moving items', () => {
 
   it('moves an item up with the button', async () => {
     buttonIn(rowOf('Brot'), 'Nach oben').click();
+    await fixture.whenStable();
+    expect(rows().map((row) => row.querySelector('.item-name')?.textContent?.trim())).toEqual([
+      'Brot',
+      'Milch',
+      'Eier',
+    ]);
 
     const request = http.expectOne({ method: 'PATCH', url: `${itemsUrl}/${brot.id}` });
     expect(request.request.body).toEqual({ position: 0 });

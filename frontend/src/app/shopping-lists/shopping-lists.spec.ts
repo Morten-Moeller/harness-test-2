@@ -328,7 +328,9 @@ describe('ShoppingLists moving lists', () => {
     ({ fixture, http } = await createPage());
     http.expectOne({ method: 'GET', url: '/api/lists' }).flush([rewe, edeka]);
     await fixture.whenStable();
-    http.expectOne({ method: 'GET', url: `/api/lists/${rewe.id}/items` }).flush([]);
+    http
+      .expectOne({ method: 'GET', url: `/api/lists/${rewe.id}/items` })
+      .flush([anItem({ name: 'Milch' })]);
     http.expectOne({ method: 'GET', url: `/api/lists/${edeka.id}/items` }).flush([]);
     await fixture.whenStable();
   });
@@ -350,6 +352,8 @@ describe('ShoppingLists moving lists', () => {
 
   it('moves a list down with the button', async () => {
     buttonIn(panels()[0], 'Nach unten').click();
+    await fixture.whenStable();
+    expect(names()).toEqual(['Edeka', 'Rewe']);
 
     const request = http.expectOne({ method: 'PATCH', url: `/api/lists/${rewe.id}` });
     expect(request.request.body).toEqual({ position: 1 });
@@ -386,17 +390,17 @@ describe('ShoppingLists moving lists', () => {
     }
   });
 
-  it('reloads the source panel after moved', async () => {
+  it('removes the moved item from the source panel and reloads it', async () => {
     const target = fixture.debugElement.queryAll(By.directive(ShoppingListPanel))[1]
       .componentInstance as ShoppingListPanel;
-
-    target.moved.emit({ listId: rewe.id, itemId: '99999999-9999-9999-9999-999999999999' });
-    await fixture.whenStable();
-
-    http
-      .expectOne({ method: 'GET', url: `/api/lists/${rewe.id}/items` })
-      .flush([anItem({ name: 'Milch' })]);
-    await fixture.whenStable();
     expect(panels()[0].querySelector('.item-name')?.textContent).toContain('Milch');
+
+    target.moved.emit({ listId: rewe.id, itemId: anItem().id });
+    await fixture.whenStable();
+    expect(panels()[0].querySelector('.item-name')).toBeNull();
+
+    http.expectOne({ method: 'GET', url: `/api/lists/${rewe.id}/items` }).flush([]);
+    await fixture.whenStable();
+    expect(panels()[0].querySelector('.empty')?.textContent).toContain('Noch keine Artikel.');
   });
 });

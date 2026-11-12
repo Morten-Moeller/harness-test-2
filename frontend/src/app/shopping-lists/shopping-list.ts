@@ -140,6 +140,7 @@ export class ShoppingListPanel implements OnInit {
           this.moved.emit({ listId: source.id, itemId: event.item.data.id });
         },
         error: () => {
+          this.removeLocally(event.item.data.id);
           this.error.set('Der Artikel konnte nicht verschoben werden.');
           this.load();
         },
