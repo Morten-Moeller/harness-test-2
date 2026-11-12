@@ -1,4 +1,4 @@
-package de.mmoller.einkaufsliste.item;
+package de.mmoller.einkaufsliste.shoppinglist;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -26,6 +27,24 @@ import org.junit.jupiter.params.provider.MethodSource;
 class ItemResourceTest {
 
     private static final String SUFFIX = UUID.randomUUID().toString();
+
+    private String listId;
+
+    @BeforeEach
+    void createOwnList() {
+        listId = createList();
+    }
+
+    private static String createList() {
+        return given().contentType(ContentType.JSON)
+                .body(Map.of("name", "Liste-" + UUID.randomUUID()))
+                .when()
+                .post("/api/lists")
+                .then()
+                .statusCode(201)
+                .extract()
+                .path("id");
+    }
 
     private static Map<String, Object> anItem() {
         Map<String, Object> body = new HashMap<>();
@@ -40,44 +59,59 @@ class ItemResourceTest {
         return body;
     }
 
-    private static ValidatableResponse post(Map<String, Object> body) {
+    private static String itemsPath(String listId) {
+        return "/api/lists/" + listId + "/items";
+    }
+
+    private static ValidatableResponse post(String listId, Map<String, Object> body) {
         return given().contentType(ContentType.JSON)
                 .body(body)
                 .when()
-                .post("/api/items")
+                .post(itemsPath(listId))
                 .then();
     }
 
-    private static ValidatableResponse patch(String id, Object body) {
+    private ValidatableResponse post(Map<String, Object> body) {
+        return post(listId, body);
+    }
+
+    private static ValidatableResponse patch(String listId, String id, Object body) {
         var request = given().contentType(ContentType.JSON);
         if (body != null) {
             request = request.body(body);
         }
-        return request.when().patch("/api/items/" + id).then();
+        return request.when().patch(itemsPath(listId) + "/" + id).then();
     }
 
-    private static Map<String, Object> stored(String id) {
-        List<Map<String, Object>> all = given().when()
-                .get("/api/items")
+    private ValidatableResponse patch(String id, Object body) {
+        return patch(listId, id, body);
+    }
+
+    private static List<Map<String, Object>> storedItems(String listId) {
+        return given().when()
+                .get(itemsPath(listId))
                 .then()
                 .statusCode(200)
                 .extract()
                 .jsonPath()
                 .getList("");
-        return all.stream()
+    }
+
+    private Map<String, Object> stored(String id) {
+        return storedItems(listId).stream()
                 .filter(item -> id.equals(item.get("id")))
                 .findFirst()
                 .orElseThrow();
     }
 
-    private static List<String> storedNames() {
-        return given().when()
-                .get("/api/items")
-                .then()
-                .statusCode(200)
-                .extract()
-                .jsonPath()
-                .getList("name");
+    private static List<String> storedNames(String listId) {
+        return storedItems(listId).stream()
+                .map(item -> (String) item.get("name"))
+                .toList();
+    }
+
+    private List<String> storedNames() {
+        return storedNames(listId);
     }
 
     @Test
@@ -94,7 +128,7 @@ class ItemResourceTest {
                 .extract();
 
         String id = response.path("id");
-        assertThat(response.header("Location"), endsWith("/api/items/" + id));
+        assertThat(response.header("Location"), endsWith(itemsPath(listId) + "/" + id));
     }
 
     @Test
@@ -121,11 +155,22 @@ class ItemResourceTest {
         post(anItem("Eier-" + SUFFIX)).statusCode(201);
         post(anItem("Butter-" + SUFFIX)).statusCode(201);
 
-        List<String> own = storedNames().stream()
-                .filter(name -> name.equals("Eier-" + SUFFIX) || name.equals("Butter-" + SUFFIX))
-                .toList();
+        assertThat(storedNames(), equalTo(List.of("Eier-" + SUFFIX, "Butter-" + SUFFIX)));
+    }
 
-        assertThat(own, equalTo(List.of("Eier-" + SUFFIX, "Butter-" + SUFFIX)));
+    @Test
+    void listsNothingForNewList() {
+        assertThat(storedItems(listId), equalTo(List.of()));
+    }
+
+    @Test
+    void keepsItemsPerList() {
+        String otherList = createList();
+        post(anItem("Hier-" + SUFFIX)).statusCode(201);
+        post(otherList, anItem("Dort-" + SUFFIX)).statusCode(201);
+
+        assertThat(storedNames(), equalTo(List.of("Hier-" + SUFFIX)));
+        assertThat(storedNames(otherList), equalTo(List.of("Dort-" + SUFFIX)));
     }
 
     @Test
@@ -141,10 +186,7 @@ class ItemResourceTest {
         assertThat(item.get("done"), is(true));
         assertThat(item.get("name"), equalTo("Eier-done-" + SUFFIX));
         assertThat(item.get("quantity"), nullValue());
-        List<String> own = storedNames().stream()
-                .filter(name -> name.endsWith("-done-" + SUFFIX))
-                .toList();
-        assertThat(own, equalTo(List.of("Eier-done-" + SUFFIX, "Butter-done-" + SUFFIX)));
+        assertThat(storedNames(), equalTo(List.of("Eier-done-" + SUFFIX, "Butter-done-" + SUFFIX)));
         assertThat(stored(second).get("done"), is(false));
     }
 
@@ -161,6 +203,36 @@ class ItemResourceTest {
     @Test
     void answers404ForUnknownItem() {
         patch(UUID.randomUUID().toString(), Map.of("done", true)).statusCode(404);
+    }
+
+    @Test
+    void answers404ForItemOfOtherList() {
+        String otherList = createList();
+        String id = post(otherList, anItem()).statusCode(201).extract().path("id");
+
+        patch(id, Map.of("done", true)).statusCode(404);
+
+        assertThat(storedItems(otherList).get(0).get("done"), is(false));
+    }
+
+    @Test
+    void answers404ForUnknownList() {
+        String unknown = UUID.randomUUID().toString();
+
+        given().when().get(itemsPath(unknown)).then().statusCode(404);
+        post(unknown, anItem()).statusCode(404);
+        patch(unknown, UUID.randomUUID().toString(), Map.of("done", true)).statusCode(404);
+    }
+
+    @Test
+    void answers404ForOldItemsPath() {
+        given().when().get("/api/items").then().statusCode(404);
+        given().contentType(ContentType.JSON)
+                .body(anItem())
+                .when()
+                .post("/api/items")
+                .then()
+                .statusCode(404);
     }
 
     static Stream<Arguments> invalidUpdates() {
@@ -200,13 +272,7 @@ class ItemResourceTest {
     void rejectsInvalidInputAndStoresNothing(String label, Map<String, Object> body) {
         post(body).statusCode(400);
 
-        String name = (String) body.get("name");
-        List<String> stored = storedNames();
-        if (name == null || name.isBlank()) {
-            assertThat(stored.stream().anyMatch(String::isBlank), is(false));
-        } else {
-            assertThat(stored.contains(name.trim()), is(false));
-        }
+        assertThat(storedItems(listId), equalTo(List.of()));
     }
 
     @Test

@@ -42,7 +42,7 @@ class RequestIdFilterTest {
     @Test
     void setsRequestIdOnEveryResponse() {
         String id = given().when()
-                .get("/api/items")
+                .get("/api/lists")
                 .then()
                 .statusCode(200)
                 .extract()
@@ -55,7 +55,7 @@ class RequestIdFilterTest {
     void keepsValidRequestIdFromRequest() {
         given().header(RequestIdFilter.HEADER, "abc-123")
                 .when()
-                .get("/api/items")
+                .get("/api/lists")
                 .then()
                 .statusCode(200)
                 .header(RequestIdFilter.HEADER, equalTo("abc-123"));
@@ -66,14 +66,14 @@ class RequestIdFilterTest {
         String tooLong = "a".repeat(65);
         String idForTooLong = given().header(RequestIdFilter.HEADER, tooLong)
                 .when()
-                .get("/api/items")
+                .get("/api/lists")
                 .then()
                 .header(RequestIdFilter.HEADER, not(equalTo(tooLong)))
                 .extract()
                 .header(RequestIdFilter.HEADER);
         String idForBadChars = given().header(RequestIdFilter.HEADER, "with space")
                 .when()
-                .get("/api/items")
+                .get("/api/lists")
                 .then()
                 .header(RequestIdFilter.HEADER, not(equalTo("with space")))
                 .extract()
@@ -89,7 +89,7 @@ class RequestIdFilterTest {
 
         given().header(RequestIdFilter.HEADER, id)
                 .when()
-                .get("/api/items?secret=1")
+                .get("/api/lists?secret=1")
                 .then()
                 .statusCode(200);
 
@@ -97,6 +97,6 @@ class RequestIdFilterTest {
                 .filter(record -> id.equals(record.getMdc("requestId")))
                 .toList();
         assertThat(lines.size(), is(1));
-        assertThat(lines.get(0).getFormattedMessage(), equalTo("GET /api/items -> 200"));
+        assertThat(lines.get(0).getFormattedMessage(), equalTo("GET /api/lists -> 200"));
     }
 }

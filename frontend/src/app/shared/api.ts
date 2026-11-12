@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-  '/api/items': {
+  '/api/lists': {
     parameters: {
       query?: never;
       header?: never;
@@ -25,7 +25,7 @@ export interface paths {
         200: {
           headers: Record<string, unknown>;
           content: {
-            'application/json': components['schemas']['Item'][];
+            'application/json': components['schemas']['ShoppingList'][];
           };
         };
       };
@@ -37,6 +37,147 @@ export interface paths {
         query?: never;
         header?: never;
         path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['CreateShoppingListRequest'];
+        };
+      };
+      responses: {
+        /** @description Created */
+        201: {
+          headers: Record<string, unknown>;
+          content: {
+            'application/json': components['schemas']['ShoppingList'];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: Record<string, unknown>;
+          content?: never;
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/lists/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    /** Delete */
+    delete: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: components['schemas']['UUID'];
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description No Content */
+        204: {
+          headers: Record<string, unknown>;
+          content?: never;
+        };
+        /** @description Not Found */
+        404: {
+          headers: Record<string, unknown>;
+          content?: never;
+        };
+      };
+    };
+    options?: never;
+    head?: never;
+    /** Rename */
+    patch: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: components['schemas']['UUID'];
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['UpdateShoppingListRequest'];
+        };
+      };
+      responses: {
+        /** @description No Content */
+        204: {
+          headers: Record<string, unknown>;
+          content?: never;
+        };
+        /** @description Bad Request */
+        400: {
+          headers: Record<string, unknown>;
+          content?: never;
+        };
+        /** @description Not Found */
+        404: {
+          headers: Record<string, unknown>;
+          content?: never;
+        };
+      };
+    };
+    trace?: never;
+  };
+  '/api/lists/{listId}/items': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          listId: components['schemas']['UUID'];
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: Record<string, unknown>;
+          content: {
+            'application/json': components['schemas']['Item'][];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: Record<string, unknown>;
+          content?: never;
+        };
+      };
+    };
+    put?: never;
+    /** Create */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          listId: components['schemas']['UUID'];
+        };
         cookie?: never;
       };
       requestBody: {
@@ -57,6 +198,11 @@ export interface paths {
           headers: Record<string, unknown>;
           content?: never;
         };
+        /** @description Not Found */
+        404: {
+          headers: Record<string, unknown>;
+          content?: never;
+        };
       };
     };
     delete?: never;
@@ -65,7 +211,7 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  '/api/items/{id}': {
+  '/api/lists/{listId}/items/{id}': {
     parameters: {
       query?: never;
       header?: never;
@@ -85,6 +231,7 @@ export interface paths {
         header?: never;
         path: {
           id: components['schemas']['UUID'];
+          listId: components['schemas']['UUID'];
         };
         cookie?: never;
       };
@@ -121,16 +268,26 @@ export interface components {
       name: string;
       quantity?: string;
     };
+    CreateShoppingListRequest: {
+      name: string;
+    };
     Item: {
       id: components['schemas']['UUID'];
       name: string;
       quantity: string | null;
       done: boolean;
     };
+    ShoppingList: {
+      id: components['schemas']['UUID'];
+      name: string;
+    };
     /** Format: uuid */
     UUID: string;
     UpdateItemRequest: {
       done: boolean;
+    };
+    UpdateShoppingListRequest: {
+      name: string;
     };
   };
   responses: never;

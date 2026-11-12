@@ -11,7 +11,7 @@ Jede Änderung beginnt mit einer Spec (`harness/workflow.md`). Statuswerte: `dra
 | 0003 | Grundregeln im Code von Feature 0001 umsetzen | medium | done | #9 | 2026-11-11 | – | alle Kriterien erfüllt, kein Browser-Test nötig |
 | 0004 | Artikel erledigen und Filter | high | done | #11 | 2026-11-11 | – | alle Kriterien erfüllt, Browser-Test auf 4201 |
 | 0005 | Harness 0.6.0 übernehmen | high | done | #13 | 2026-11-11 | – | alle Kriterien erfüllt, kein Browser-Test nötig |
-| 0006 | Mehrere Einkaufslisten mit Überschrift, nebeneinander oder untereinander | high | approved | – | 2026-11-12 | – | freigegeben in der Session |
+| 0006 | Mehrere Einkaufslisten mit Überschrift, nebeneinander oder untereinander | high | Review | – | 2026-11-12 | – | – |
 
 ## Entscheidungen
 

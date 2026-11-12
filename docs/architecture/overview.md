@@ -21,8 +21,13 @@ Grundregeln: `harness/architecture.md` (A1 bis A7). Abweichungen: ADR 0002 bis 0
 
 - Das Frontend spricht nur über REST unter `/api` mit dem Backend; es kennt keine Backend-Klassen.
 - Das Backend kennt das Frontend nicht.
-- Im Backend: Resource → Service → Repository, nie in die Gegenrichtung (`project-rules/backend.md`).
-- Im Frontend importiert ein Feature nie aus einem anderen Feature (`project-rules/frontend.md`).
+- Im Backend: ein Feature-Paket `shoppinglist` für Einkaufslisten und ihre Artikel; darin
+  Resource → Service → Repository, nie in die Gegenrichtung (`project-rules/backend.md`).
+- Im Frontend: ein Feature `shopping-lists` mit der Seite (`ShoppingLists`) und einer Tafel pro
+  Einkaufsliste (`ShoppingListPanel`). Ein Feature importiert nie aus einem anderen Feature
+  (`project-rules/frontend.md`).
+- Die API: Einkaufslisten unter `/api/lists`, Artikel als Unterressource unter
+  `/api/lists/{listId}/items` (ADR 0010).
 
 ## Querschnitt
 

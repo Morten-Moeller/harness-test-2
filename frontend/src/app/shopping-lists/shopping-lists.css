@@ -1,9 +1,20 @@
-.form {
+fieldset {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+}
+
+legend {
+  padding: 0 0.25rem;
+  font-weight: 600;
+}
+
+.row {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
   align-items: flex-end;
-  margin-bottom: 1rem;
 }
 
 .field {
@@ -13,7 +24,7 @@
   flex: 1 1 10rem;
 }
 
-input {
+input[type='text'] {
   padding: 0.5rem;
   font: inherit;
   border: 1px solid #767676;
@@ -42,47 +53,35 @@ button:focus-visible {
   outline-offset: 2px;
 }
 
-.error {
-  color: #b91c1c;
-  margin: 0 0 1rem;
-}
-
-.items {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.item,
-.empty {
+.layout {
   display: flex;
-  justify-content: space-between;
+  flex-wrap: wrap;
   gap: 1rem;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid #e5e7eb;
 }
 
-.empty {
-  color: #4b5563;
-}
-
-.item-quantity {
-  color: #4b5563;
-}
-
-.filter {
-  margin-bottom: 0.5rem;
-}
-
-.filter label,
-.item-check {
+.layout label {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   cursor: pointer;
 }
 
-.item-name.done {
-  text-decoration: line-through;
+.error {
+  color: #b91c1c;
+  margin: 0 0 1rem;
+}
+
+.lists {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+
+.lists.columns {
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+}
+
+.no-lists {
+  margin: 0;
   color: #4b5563;
 }
