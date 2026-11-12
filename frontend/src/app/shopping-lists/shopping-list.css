@@ -140,3 +140,63 @@ button:focus-visible {
   text-decoration: line-through;
   color: #4b5563;
 }
+
+.list-controls:empty {
+  display: none;
+}
+
+.item {
+  align-items: center;
+}
+
+.item-check {
+  flex: 1 1 auto;
+}
+
+.handle {
+  padding: 0.25rem 0.5rem;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  color: #4b5563;
+  cursor: grab;
+  touch-action: none;
+}
+
+.move-buttons {
+  position: relative;
+}
+
+.move {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  background: #fff;
+  color: #1a56db;
+}
+
+.move:focus-visible {
+  position: static;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip: auto;
+}
+
+.cdk-drag-preview {
+  box-shadow: 0 0.25rem 1rem rgb(0 0 0 / 25%);
+  background: #fff;
+  list-style: none;
+}
+
+.cdk-drag-placeholder {
+  opacity: 0.3;
+}
+
+.cdk-drop-list-dragging .item:not(.cdk-drag-placeholder) {
+  transition: transform 150ms ease;
+}

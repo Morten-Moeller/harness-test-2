@@ -85,3 +85,50 @@ button:focus-visible {
   margin: 0;
   color: #4b5563;
 }
+
+.list-controls {
+  position: relative;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.handle {
+  padding: 0.25rem 0.5rem;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  color: #4b5563;
+  cursor: grab;
+  touch-action: none;
+}
+
+.move {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  background: #fff;
+  color: #1a56db;
+}
+
+.move:focus-visible {
+  position: static;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip: auto;
+}
+
+app-shopping-list.cdk-drag-preview {
+  box-shadow: 0 0.25rem 1rem rgb(0 0 0 / 25%);
+  background: #fff;
+  border-radius: 0.5rem;
+}
+
+app-shopping-list.cdk-drag-placeholder {
+  opacity: 0.3;
+}

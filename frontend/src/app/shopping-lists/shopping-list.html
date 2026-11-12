@@ -23,6 +23,9 @@
         <button type="button" class="secondary" (click)="remove()">Löschen</button>
       </div>
     }
+    <div class="list-controls">
+      <ng-content select="[listControls]" />
+    </div>
   </div>
 
   <form class="form" (ngSubmit)="submit()">
@@ -71,9 +74,24 @@
     </label>
   </div>
 
-  <ul class="items" aria-label="Artikel">
-    @for (item of visibleItems(); track item.id) {
-      <li class="item">
+  <ul
+    class="items"
+    aria-label="Artikel"
+    [id]="dropListId()"
+    cdkDropList
+    [cdkDropListData]="list()"
+    [cdkDropListConnectedTo]="connectedTo()"
+    (cdkDropListDropped)="dropped($event)"
+  >
+    @for (
+      item of visibleItems();
+      track item.id;
+      let first = $first;
+      let last = $last;
+      let i = $index
+    ) {
+      <li class="item" cdkDrag [cdkDragData]="item">
+        <button type="button" class="handle" cdkDragHandle aria-label="Artikel ziehen">⠿</button>
         <label class="item-check">
           <input
             type="checkbox"
@@ -86,6 +104,26 @@
         @if (item.quantity) {
           <span class="item-quantity">{{ item.quantity }}</span>
         }
+        <span class="move-buttons">
+          <button
+            type="button"
+            class="move"
+            [attr.aria-label]="'Nach oben: ' + item.name"
+            [disabled]="first"
+            (click)="moveItem(item, i - 1)"
+          >
+            Nach oben
+          </button>
+          <button
+            type="button"
+            class="move"
+            [attr.aria-label]="'Nach unten: ' + item.name"
+            [disabled]="last"
+            (click)="moveItem(item, i + 1)"
+          >
+            Nach unten
+          </button>
+        </span>
       </li>
     } @empty {
       <li class="empty">{{ emptyText() }}</li>

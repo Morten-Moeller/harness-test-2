@@ -25,7 +25,9 @@
 
 ## UI
 
-- Plain CSS per component, no component library for now.
+- Plain CSS per component. `@angular/cdk` only for `DragDropModule` (`CdkDropList`, `CdkDrag`,
+  `CdkDragHandle`, `CdkDropListGroup`, ADR 0012); no other CDK part and no component library
+  without an ADR. Dragging has a keyboard path through the buttons `Nach oben` and `Nach unten`.
 - User-facing text is German and written directly in the templates; there is no i18n framework.
 - Accessibility: every control has a label, everything is reachable by keyboard, focus is visible.
   Colour values are a design decision; report contrast problems, do not change colours on the way.

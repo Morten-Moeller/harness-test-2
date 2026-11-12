@@ -12,6 +12,7 @@ Jede Änderung beginnt mit einer Spec (`harness/workflow.md`). Statuswerte: `dra
 | 0004 | Artikel erledigen und Filter | high | done | #11 | 2026-11-11 | – | alle Kriterien erfüllt, Browser-Test auf 4201 |
 | 0005 | Harness 0.6.0 übernehmen | high | done | #13 | 2026-11-11 | – | alle Kriterien erfüllt, kein Browser-Test nötig |
 | 0006 | Mehrere Einkaufslisten mit Überschrift, nebeneinander oder untereinander | high | done | #15 | 2026-11-12 | – | alle Kriterien erfüllt, Browser-Test auf 4201 |
+| 0007 | Einkaufslisten und Artikel per Drag and Drop sortieren | high | done | #16 | 2026-11-12 | – | alle Kriterien erfüllt, Browser-Test auf 4201 |
 
 ## Entscheidungen
 
@@ -34,3 +35,8 @@ Antworten auf offene Fragen aus Specs, mit der Person, die entschieden hat.
 | 2026-11-12 | 0006 | Artikel als Unterressource `/api/lists/{listId}/items`; `/api/items` entfällt, Contract 2.0.0 (ADR 0010). | Morten Möller |
 | 2026-11-12 | 0006 | Einkaufslisten anlegen, umbenennen und löschen in dieser Spec; Löschen sofort ohne Dialog. | Morten Möller |
 | 2026-11-12 | 0006 | Formular für Artikel und Filter `Nur offene anzeigen` je Einkaufsliste. | Morten Möller |
+| 2026-11-12 | 0007 | Drag and Drop über `@angular/cdk`, Tastaturweg über Buttons `Nach oben` und `Nach unten` (ADR 0012). | Morten Möller |
+| 2026-11-12 | 0007 | Reihenfolge als optionales Feld `position` je Eintrag in `PATCH`; Verschieben über `listId` (ADR 0011). | Morten Möller |
+| 2026-11-12 | 0007 | Artikel dürfen in eine andere Einkaufsliste gezogen werden. | Morten Möller |
+| 2026-11-12 | 0007 | Sortieren auch bei aktivem Filter: sichtbare Artikel untereinander, erledigte behalten ihre relative Position. | Morten Möller |
+| 2026-11-12 | 0007 | Buttons `Nach oben` und `Nach unten` nur bei Tastaturfokus sichtbar, für Screenreader immer vorhanden. | Morten Möller |

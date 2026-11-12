@@ -1,4 +1,6 @@
+import { CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ShoppingListPanel } from './shopping-list';
@@ -285,5 +287,182 @@ describe('ShoppingListPanel with stored items', () => {
 
     expect(rows().length).toBe(0);
     expect(element().querySelector('.empty')?.textContent).toContain('Keine offenen Artikel.');
+  });
+});
+
+describe('ShoppingListPanel moving items', () => {
+  let fixture: ComponentFixture<ShoppingListPanel>;
+  let http: HttpTestingController;
+
+  const eier = anItem({ id: '33333333-3333-3333-3333-333333333333', name: 'Eier' });
+  const element = (): HTMLElement => fixture.nativeElement as HTMLElement;
+  const rows = (): HTMLElement[] => Array.from(element().querySelectorAll<HTMLElement>('.item'));
+  const rowOf = (name: string): HTMLElement =>
+    rows().find((row) => row.querySelector('.item-name')?.textContent?.trim() === name)!;
+  const buttonIn = (row: HTMLElement, label: string): HTMLButtonElement =>
+    Array.from(row.querySelectorAll<HTMLButtonElement>('button.move')).find(
+      (b) => b.textContent?.trim() === label,
+    )!;
+
+  const load = async (items: Item[]): Promise<void> => {
+    http.expectOne({ method: 'GET', url: itemsUrl }).flush(items);
+    await fixture.whenStable();
+  };
+
+  beforeEach(async () => {
+    ({ fixture, http } = await createPanel());
+    await load([milch, brot, eier]);
+  });
+
+  afterEach(() => http.verify());
+
+  it('renders handle and move buttons per item', () => {
+    expect(rows().length).toBe(3);
+    for (const row of rows()) {
+      expect(row.querySelector('button.handle')?.getAttribute('aria-label')).toBe('Artikel ziehen');
+      expect(buttonIn(row, 'Nach oben')).toBeDefined();
+      expect(buttonIn(row, 'Nach unten')).toBeDefined();
+    }
+    expect(buttonIn(rowOf('Milch'), 'Nach oben').disabled).toBe(true);
+    expect(buttonIn(rowOf('Milch'), 'Nach unten').disabled).toBe(false);
+    expect(buttonIn(rowOf('Eier'), 'Nach unten').disabled).toBe(true);
+    expect(buttonIn(rowOf('Brot'), 'Nach oben').getAttribute('aria-label')).toBe('Nach oben: Brot');
+  });
+
+  it('moves an item up with the button', async () => {
+    buttonIn(rowOf('Brot'), 'Nach oben').click();
+    await fixture.whenStable();
+    expect(rows().map((row) => row.querySelector('.item-name')?.textContent?.trim())).toEqual([
+      'Brot',
+      'Milch',
+      'Eier',
+    ]);
+
+    const request = http.expectOne({ method: 'PATCH', url: `${itemsUrl}/${brot.id}` });
+    expect(request.request.body).toEqual({ position: 0 });
+    request.flush(null, { status: 204, statusText: 'No Content' });
+    await fixture.whenStable();
+    await load([brot, milch, eier]);
+
+    expect(rows().map((row) => row.querySelector('.item-name')?.textContent?.trim())).toEqual([
+      'Brot',
+      'Milch',
+      'Eier',
+    ]);
+  });
+
+  it('moves only among open items while the filter is on', async () => {
+    const filter = element().querySelector<HTMLInputElement>(`#only-open-${rewe.id}`)!;
+    filter.checked = true;
+    filter.dispatchEvent(new Event('change'));
+    await fixture.whenStable();
+    expect(rows().length).toBe(2);
+
+    buttonIn(rowOf('Milch'), 'Nach unten').click();
+
+    const request = http.expectOne({ method: 'PATCH', url: `${itemsUrl}/${milch.id}` });
+    expect(request.request.body).toEqual({ position: 2 });
+    request.flush(null, { status: 204, statusText: 'No Content' });
+    await fixture.whenStable();
+    await load([brot, eier, milch]);
+  });
+
+  it('shows an error when moving fails', async () => {
+    buttonIn(rowOf('Milch'), 'Nach unten').click();
+
+    http
+      .expectOne({ method: 'PATCH', url: `${itemsUrl}/${milch.id}` })
+      .flush({}, { status: 500, statusText: 'Error' });
+    await fixture.whenStable();
+    await load([milch, brot, eier]);
+
+    expect(element().querySelector('.error')?.textContent).toContain(
+      'Der Artikel konnte nicht verschoben werden.',
+    );
+    expect(rows()[0].querySelector('.item-name')?.textContent).toContain('Milch');
+  });
+});
+
+describe('ShoppingListPanel receiving an item from another panel', () => {
+  let fixture: ComponentFixture<ShoppingListPanel>;
+  let http: HttpTestingController;
+
+  const edeka: ShoppingList = { id: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', name: 'Edeka' };
+  const kaese = anItem({ id: '44444444-4444-4444-4444-444444444444', name: 'Kaese' });
+  const element = (): HTMLElement => fixture.nativeElement as HTMLElement;
+  const names = (): (string | undefined)[] =>
+    Array.from(element().querySelectorAll('.item-name')).map((e) => e.textContent?.trim());
+
+  const dropFromEdeka = (currentIndex: number): void => {
+    const dropList = fixture.debugElement.query(By.css('ul.items')).injector.get(CdkDropList);
+    dropList.dropped.emit({
+      previousContainer: { data: edeka } as unknown as CdkDropList<ShoppingList>,
+      container: dropList,
+      previousIndex: 0,
+      currentIndex,
+      item: { data: kaese },
+    } as unknown as CdkDragDrop<ShoppingList, ShoppingList, Item>);
+  };
+
+  beforeEach(async () => {
+    ({ fixture, http } = await createPanel());
+    http.expectOne({ method: 'GET', url: itemsUrl }).flush([milch, brot]);
+    await fixture.whenStable();
+  });
+
+  afterEach(() => http.verify());
+
+  it('inserts the item at the drop position and reports the source list', async () => {
+    const moved: { listId: string; itemId: string }[] = [];
+    fixture.componentInstance.moved.subscribe((event) => moved.push(event));
+
+    dropFromEdeka(1);
+    await fixture.whenStable();
+    expect(names()).toEqual(['Milch', 'Kaese', 'Brot']);
+
+    const request = http.expectOne({
+      method: 'PATCH',
+      url: `/api/lists/${edeka.id}/items/${kaese.id}`,
+    });
+    expect(request.request.body).toEqual({ listId: rewe.id, position: 1 });
+    request.flush(null, { status: 204, statusText: 'No Content' });
+    await fixture.whenStable();
+    http.expectOne({ method: 'GET', url: itemsUrl }).flush([milch, kaese, brot]);
+    await fixture.whenStable();
+
+    expect(moved).toEqual([{ listId: edeka.id, itemId: kaese.id }]);
+    expect(names()).toEqual(['Milch', 'Kaese', 'Brot']);
+  });
+
+  it('appends the item when dropped below the last row', async () => {
+    dropFromEdeka(2);
+    await fixture.whenStable();
+
+    const request = http.expectOne({
+      method: 'PATCH',
+      url: `/api/lists/${edeka.id}/items/${kaese.id}`,
+    });
+    expect(request.request.body).toEqual({ listId: rewe.id, position: 2 });
+    request.flush(null, { status: 204, statusText: 'No Content' });
+    await fixture.whenStable();
+    http.expectOne({ method: 'GET', url: itemsUrl }).flush([milch, brot, kaese]);
+    await fixture.whenStable();
+  });
+
+  it('removes the item again when the move fails', async () => {
+    dropFromEdeka(0);
+    await fixture.whenStable();
+    expect(names()).toEqual(['Kaese', 'Milch', 'Brot']);
+
+    http
+      .expectOne({ method: 'PATCH', url: `/api/lists/${edeka.id}/items/${kaese.id}` })
+      .flush({}, { status: 500, statusText: 'Error' });
+    await fixture.whenStable();
+    expect(names()).toEqual(['Milch', 'Brot']);
+    expect(element().querySelector('.error')?.textContent).toContain(
+      'Der Artikel konnte nicht verschoben werden.',
+    );
+    http.expectOne({ method: 'GET', url: itemsUrl }).flush([milch, brot]);
+    await fixture.whenStable();
   });
 });

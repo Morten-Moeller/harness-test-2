@@ -239,19 +239,23 @@ class ItemResourceTest {
         Map<String, Object> doneNull = new HashMap<>();
         doneNull.put("done", null);
         return Stream.of(
-                Arguments.of("body without done", Map.of()),
+                Arguments.of("body without field", Map.of()),
                 Arguments.of("done null", doneNull),
-                Arguments.of("no body", null));
+                Arguments.of("no body", null),
+                Arguments.of("position -1", Map.of("position", -1)),
+                Arguments.of("position equal to count", Map.of("position", 2)));
     }
 
     @ParameterizedTest(name = "rejects update with {0}")
     @MethodSource("invalidUpdates")
-    void rejectsUpdateWithoutDone(String label, Map<String, Object> body) {
-        String id = post(anItem()).statusCode(201).extract().path("id");
+    void rejectsUpdateWithoutField(String label, Map<String, Object> body) {
+        String first = post(anItem()).statusCode(201).extract().path("id");
+        String second = post(anItem()).statusCode(201).extract().path("id");
 
-        patch(id, body).statusCode(400);
+        patch(first, body).statusCode(400);
 
-        assertThat(stored(id).get("done"), is(false));
+        assertThat(storedIds(listId), equalTo(List.of(first, second)));
+        assertThat(stored(first).get("done"), is(false));
     }
 
     static Stream<Arguments> invalidBodies() {
@@ -283,5 +287,102 @@ class ItemResourceTest {
         body.put("quantity", "  " + quantity + "  ");
 
         post(body).statusCode(201).body("name", equalTo(name)).body("quantity", equalTo(quantity));
+    }
+
+    private List<String> storedIds(String listId) {
+        return storedItems(listId).stream().map(item -> (String) item.get("id")).toList();
+    }
+
+    private List<String> threeItems() {
+        String a = post(anItem("A-" + SUFFIX)).statusCode(201).extract().path("id");
+        String b = post(anItem("B-" + SUFFIX)).statusCode(201).extract().path("id");
+        String c = post(anItem("C-" + SUFFIX)).statusCode(201).extract().path("id");
+        return List.of(a, b, c);
+    }
+
+    @Test
+    void movesItemToPosition() {
+        List<String> ids = threeItems();
+
+        patch(ids.get(0), Map.of("position", 2)).statusCode(204).body(equalTo(""));
+
+        assertThat(storedIds(listId), equalTo(List.of(ids.get(1), ids.get(2), ids.get(0))));
+        Map<String, Object> moved = stored(ids.get(0));
+        assertThat(moved.get("name"), equalTo("A-" + SUFFIX));
+        assertThat(moved.get("done"), is(false));
+    }
+
+    @Test
+    void marksDoneAndMovesItem() {
+        List<String> ids = threeItems();
+
+        patch(ids.get(0), Map.of("done", true, "position", 1)).statusCode(204);
+
+        assertThat(storedIds(listId), equalTo(List.of(ids.get(1), ids.get(0), ids.get(2))));
+        assertThat(stored(ids.get(0)).get("done"), is(true));
+    }
+
+    @Test
+    void movesItemToOtherList() {
+        String otherList = createList();
+        String x =
+                post(otherList, anItem("X-" + SUFFIX)).statusCode(201).extract().path("id");
+        String y =
+                post(otherList, anItem("Y-" + SUFFIX)).statusCode(201).extract().path("id");
+        List<String> ids = threeItems();
+        patch(ids.get(1), Map.of("done", true)).statusCode(204);
+
+        patch(ids.get(1), Map.of("listId", otherList, "position", 1)).statusCode(204);
+
+        assertThat(storedIds(listId), equalTo(List.of(ids.get(0), ids.get(2))));
+        assertThat(storedIds(otherList), equalTo(List.of(x, ids.get(1), y)));
+        Map<String, Object> moved = storedItems(otherList).get(1);
+        assertThat(moved.get("name"), equalTo("B-" + SUFFIX));
+        assertThat(moved.get("done"), is(true));
+    }
+
+    @Test
+    void movesItemToEndOfOtherListWithoutPosition() {
+        String otherList = createList();
+        String x =
+                post(otherList, anItem("X-" + SUFFIX)).statusCode(201).extract().path("id");
+        List<String> ids = threeItems();
+
+        patch(ids.get(0), Map.of("listId", otherList)).statusCode(204);
+
+        assertThat(storedIds(otherList), equalTo(List.of(x, ids.get(0))));
+        assertThat(storedIds(listId), equalTo(List.of(ids.get(1), ids.get(2))));
+    }
+
+    @Test
+    void sortsOnlyWhenListIdIsOwnList() {
+        List<String> ids = threeItems();
+
+        patch(ids.get(2), Map.of("listId", listId, "position", 0)).statusCode(204);
+
+        assertThat(storedIds(listId), equalTo(List.of(ids.get(2), ids.get(0), ids.get(1))));
+    }
+
+    @Test
+    void answers404ForUnknownTargetList() {
+        List<String> ids = threeItems();
+
+        patch(ids.get(0), Map.of("listId", UUID.randomUUID().toString(), "position", 0))
+                .statusCode(404);
+
+        assertThat(storedIds(listId), equalTo(ids));
+    }
+
+    @Test
+    void rejectsPositionBeyondTargetList() {
+        String otherList = createList();
+        post(otherList, anItem("X-" + SUFFIX)).statusCode(201);
+        List<String> ids = threeItems();
+
+        patch(ids.get(0), Map.of("listId", otherList, "position", 2)).statusCode(400);
+        patch(ids.get(0), Map.of("listId", otherList, "position", 1)).statusCode(204);
+
+        assertThat(storedIds(listId), equalTo(List.of(ids.get(1), ids.get(2))));
+        assertThat(storedIds(otherList).size(), is(2));
     }
 }

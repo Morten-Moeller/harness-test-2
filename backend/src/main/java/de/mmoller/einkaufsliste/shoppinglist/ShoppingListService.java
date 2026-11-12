@@ -28,8 +28,11 @@ public class ShoppingListService {
         return lists.findAll();
     }
 
-    public boolean rename(UUID id, String name) {
-        return lists.rename(id, name);
+    public UpdateResult update(UUID id, UpdateShoppingListRequest request) {
+        if (!request.hasField() || (request.name() != null && request.name().isEmpty())) {
+            return UpdateResult.INVALID;
+        }
+        return lists.update(id, request.name(), request.position());
     }
 
     public boolean delete(UUID id) {

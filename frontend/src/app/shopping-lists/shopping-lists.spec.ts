@@ -1,6 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { CdkDropList } from '@angular/cdk/drag-drop';
+import { By } from '@angular/platform-browser';
+import { ShoppingListPanel } from './shopping-list';
 import { ShoppingLists } from './shopping-lists';
 import { Item, ShoppingList } from './shopping-lists-api';
 
@@ -304,5 +307,100 @@ describe('ShoppingLists with two lists', () => {
       'Die Einkaufsliste konnte nicht gelöscht werden.',
     );
     expect(panels().length).toBe(2);
+  });
+});
+
+describe('ShoppingLists moving lists', () => {
+  let fixture: ComponentFixture<ShoppingLists>;
+  let http: HttpTestingController;
+
+  const element = (): HTMLElement => fixture.nativeElement as HTMLElement;
+  const panels = (): HTMLElement[] =>
+    Array.from(element().querySelectorAll<HTMLElement>('app-shopping-list'));
+  const names = (): (string | undefined)[] =>
+    panels().map((panel) => panel.querySelector('h2')?.textContent?.trim());
+  const buttonIn = (panel: HTMLElement, label: string): HTMLButtonElement =>
+    Array.from(panel.querySelectorAll<HTMLButtonElement>('.list-controls button.move')).find(
+      (b) => b.textContent?.trim() === label,
+    )!;
+
+  beforeEach(async () => {
+    ({ fixture, http } = await createPage());
+    http.expectOne({ method: 'GET', url: '/api/lists' }).flush([rewe, edeka]);
+    await fixture.whenStable();
+    http
+      .expectOne({ method: 'GET', url: `/api/lists/${rewe.id}/items` })
+      .flush([anItem({ name: 'Milch' })]);
+    http.expectOne({ method: 'GET', url: `/api/lists/${edeka.id}/items` }).flush([]);
+    await fixture.whenStable();
+  });
+
+  afterEach(() => http.verify());
+
+  it('renders handle and move buttons per panel', () => {
+    for (const panel of panels()) {
+      expect(panel.querySelector('.list-controls button.handle')?.getAttribute('aria-label')).toBe(
+        'Einkaufsliste ziehen',
+      );
+    }
+    expect(buttonIn(panels()[0], 'Nach oben').disabled).toBe(true);
+    expect(buttonIn(panels()[0], 'Nach unten').disabled).toBe(false);
+    expect(buttonIn(panels()[1], 'Nach oben').disabled).toBe(false);
+    expect(buttonIn(panels()[1], 'Nach unten').disabled).toBe(true);
+    expect(buttonIn(panels()[0], 'Nach unten').getAttribute('aria-label')).toBe('Nach unten: Rewe');
+  });
+
+  it('moves a list down with the button', async () => {
+    buttonIn(panels()[0], 'Nach unten').click();
+    await fixture.whenStable();
+    expect(names()).toEqual(['Edeka', 'Rewe']);
+
+    const request = http.expectOne({ method: 'PATCH', url: `/api/lists/${rewe.id}` });
+    expect(request.request.body).toEqual({ position: 1 });
+    request.flush(null, { status: 204, statusText: 'No Content' });
+    await fixture.whenStable();
+    http.expectOne({ method: 'GET', url: '/api/lists' }).flush([edeka, rewe]);
+    await fixture.whenStable();
+
+    expect(names()).toEqual(['Edeka', 'Rewe']);
+  });
+
+  it('shows an error when moving a list fails', async () => {
+    buttonIn(panels()[1], 'Nach oben').click();
+
+    http
+      .expectOne({ method: 'PATCH', url: `/api/lists/${edeka.id}` })
+      .flush({}, { status: 500, statusText: 'Error' });
+    await fixture.whenStable();
+    http.expectOne({ method: 'GET', url: '/api/lists' }).flush([rewe, edeka]);
+    await fixture.whenStable();
+
+    expect(element().querySelector('.error')?.textContent).toContain(
+      'Die Einkaufsliste konnte nicht verschoben werden.',
+    );
+    expect(names()).toEqual(['Rewe', 'Edeka']);
+  });
+
+  it('connects the item drop lists of all panels', () => {
+    const dropLists = fixture.debugElement.queryAll(By.css('ul.items'));
+    const ids = dropLists.map((ul) => (ul.nativeElement as HTMLElement).id);
+    expect(ids).toEqual([`items-${rewe.id}`, `items-${edeka.id}`]);
+    for (const ul of dropLists) {
+      expect(ul.injector.get(CdkDropList).connectedTo).toEqual(ids);
+    }
+  });
+
+  it('removes the moved item from the source panel and reloads it', async () => {
+    const target = fixture.debugElement.queryAll(By.directive(ShoppingListPanel))[1]
+      .componentInstance as ShoppingListPanel;
+    expect(panels()[0].querySelector('.item-name')?.textContent).toContain('Milch');
+
+    target.moved.emit({ listId: rewe.id, itemId: anItem().id });
+    await fixture.whenStable();
+    expect(panels()[0].querySelector('.item-name')).toBeNull();
+
+    http.expectOne({ method: 'GET', url: `/api/lists/${rewe.id}/items` }).flush([]);
+    await fixture.whenStable();
+    expect(panels()[0].querySelector('.empty')?.textContent).toContain('Noch keine Artikel.');
   });
 });

@@ -101,7 +101,7 @@ export interface paths {
     };
     options?: never;
     head?: never;
-    /** Rename */
+    /** Update */
     patch: {
       parameters: {
         query?: never;
@@ -224,7 +224,7 @@ export interface paths {
     delete?: never;
     options?: never;
     head?: never;
-    /** Set Done */
+    /** Update */
     patch: {
       parameters: {
         query?: never;
@@ -284,10 +284,15 @@ export interface components {
     /** Format: uuid */
     UUID: string;
     UpdateItemRequest: {
-      done: boolean;
+      done?: boolean | null;
+      /** Format: int32 */
+      position?: number | null;
+      listId?: components['schemas']['UUID'] | null;
     };
     UpdateShoppingListRequest: {
-      name: string;
+      name?: string | null;
+      /** Format: int32 */
+      position?: number | null;
     };
   };
   responses: never;

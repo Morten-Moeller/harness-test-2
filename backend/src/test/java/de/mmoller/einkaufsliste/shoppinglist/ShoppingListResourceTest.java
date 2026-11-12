@@ -211,4 +211,78 @@ class ShoppingListResourceTest {
                 .statusCode(200)
                 .body("id", hasItem(keptItem));
     }
+
+    private static List<String> storedIds() {
+        return storedLists().stream().map(list -> (String) list.get("id")).toList();
+    }
+
+    private static List<String> ownOrder(String... ids) {
+        List<String> own = List.of(ids);
+        return storedIds().stream().filter(own::contains).toList();
+    }
+
+    @Test
+    void movesListToPosition() {
+        String first = createList("Pos-A-" + SUFFIX);
+        String second = createList("Pos-B-" + SUFFIX);
+        String third = createList("Pos-C-" + SUFFIX);
+
+        patch(first, Map.of("position", storedIds().indexOf(third)))
+                .statusCode(204)
+                .body(equalTo(""));
+
+        assertThat(ownOrder(first, second, third), equalTo(List.of(second, third, first)));
+        assertThat(storedName(first), equalTo("Pos-A-" + SUFFIX));
+    }
+
+    @Test
+    void renamesAndMovesList() {
+        String first = createList("Beides-A-" + SUFFIX);
+        String second = createList("Beides-B-" + SUFFIX);
+
+        patch(
+                        second,
+                        Map.of(
+                                "name",
+                                "Beides-Neu-" + SUFFIX,
+                                "position",
+                                storedIds().indexOf(first)))
+                .statusCode(204);
+
+        assertThat(ownOrder(first, second), equalTo(List.of(second, first)));
+        assertThat(storedName(second), equalTo("Beides-Neu-" + SUFFIX));
+    }
+
+    static Stream<Arguments> invalidListUpdates() {
+        return Stream.of(
+                Arguments.of("no field", Map.of()),
+                Arguments.of("position -1", Map.of("position", -1)),
+                Arguments.of("position beyond end", Map.of("position", Integer.MAX_VALUE)),
+                Arguments.of("empty name", Map.of("name", "  ")));
+    }
+
+    @ParameterizedTest(name = "rejects list update with {0}")
+    @MethodSource("invalidListUpdates")
+    void rejectsInvalidListUpdate(String label, Map<String, Object> body) {
+        String first = createList("Fest-A-" + SUFFIX);
+        String second = createList("Fest-B-" + SUFFIX);
+
+        patch(first, body).statusCode(400);
+
+        assertThat(ownOrder(first, second), equalTo(List.of(first, second)));
+        assertThat(storedName(first), equalTo("Fest-A-" + SUFFIX));
+    }
+
+    @Test
+    void rejectsPositionEqualToCount() {
+        String id = createList("Rand-" + SUFFIX);
+
+        patch(id, Map.of("position", storedIds().size())).statusCode(400);
+        patch(id, Map.of("position", storedIds().size() - 1)).statusCode(204);
+    }
+
+    @Test
+    void answers404WhenMovingUnknownList() {
+        patch(UUID.randomUUID().toString(), Map.of("position", 0)).statusCode(404);
+    }
 }
