@@ -1,5 +1,6 @@
 import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList } from '@angular/cdk/drag-drop';
 import {
+  ChangeDetectorRef,
   Component,
   ElementRef,
   Injector,
@@ -35,6 +36,7 @@ export class ShoppingListPanel implements OnInit {
 
   private readonly api = inject(ShoppingListsApi);
   private readonly injector = inject(Injector);
+  private readonly changeDetector = inject(ChangeDetectorRef);
   private readonly nameInput = viewChild.required<ElementRef<HTMLInputElement>>('nameInput');
   private readonly renameInput = viewChild<ElementRef<HTMLInputElement>>('renameInput');
 
@@ -112,6 +114,7 @@ export class ShoppingListPanel implements OnInit {
     }
     const position = positionAfterMove(this.items(), visible, fromVisible, toVisible);
     this.items.set(moveInArray(this.items(), this.items().indexOf(item), position));
+    this.changeDetector.detectChanges();
     this.updateItem(item, { position }, 'Der Artikel konnte nicht verschoben werden.');
   }
 
@@ -131,6 +134,7 @@ export class ShoppingListPanel implements OnInit {
     const next = [...this.items()];
     next.splice(position, 0, event.item.data);
     this.items.set(next);
+    this.changeDetector.detectChanges();
     this.api
       .updateItem(source.id, event.item.data.id, { listId: this.list().id, position })
       .subscribe({

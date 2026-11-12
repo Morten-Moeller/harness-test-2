@@ -1,5 +1,13 @@
 import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList } from '@angular/cdk/drag-drop';
-import { Component, OnInit, computed, inject, signal, viewChildren } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  OnInit,
+  computed,
+  inject,
+  signal,
+  viewChildren,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { moveInArray } from './order';
 import { ShoppingListPanel, itemDropListId } from './shopping-list';
@@ -16,6 +24,7 @@ export type Layout = 'columns' | 'rows';
 export class ShoppingLists implements OnInit {
   private readonly api = inject(ShoppingListsApi);
   private readonly panels = viewChildren(ShoppingListPanel);
+  private readonly changeDetector = inject(ChangeDetectorRef);
 
   protected readonly lists = signal<ShoppingList[]>([]);
   protected readonly loaded = signal(false);
@@ -58,6 +67,7 @@ export class ShoppingLists implements OnInit {
       return;
     }
     this.lists.set(moveInArray(this.lists(), this.lists().indexOf(list), to));
+    this.changeDetector.detectChanges();
     this.api.updateList(list.id, { position: to }).subscribe({
       next: () => {
         this.error.set(null);
@@ -79,6 +89,7 @@ export class ShoppingLists implements OnInit {
   protected onMoved(event: { listId: string; itemId: string }): void {
     const source = this.panels().find((panel) => panel.list().id === event.listId);
     source?.removeLocally(event.itemId);
+    this.changeDetector.detectChanges();
     source?.reload();
   }
 
