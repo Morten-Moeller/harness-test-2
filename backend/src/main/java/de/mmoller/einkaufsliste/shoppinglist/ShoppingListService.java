@@ -19,7 +19,9 @@ public class ShoppingListService {
     }
 
     public ShoppingList create(CreateShoppingListRequest request) {
-        return lists.save(new ShoppingList(ids.next(), request.name()));
+        ShoppingList list = new ShoppingList(ids.next(), request.name());
+        items.init(list.id());
+        return lists.save(list);
     }
 
     public List<ShoppingList> findAll() {

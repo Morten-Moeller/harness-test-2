@@ -13,11 +13,12 @@ import org.junit.jupiter.api.Test;
 class ItemServiceTest {
 
     private final IdGenerator ids = new IdGenerator();
-    private final ShoppingListRepository lists = new ShoppingListRepository();
-    private final ItemService service = new ItemService(new ItemRepository(), lists, ids);
+    private final ItemRepository items = new ItemRepository();
+    private final ShoppingListService lists = new ShoppingListService(new ShoppingListRepository(), items, ids);
+    private final ItemService service = new ItemService(items, ids);
 
     private UUID aList() {
-        return lists.save(new ShoppingList(ids.next(), "Liste")).id();
+        return lists.create(new CreateShoppingListRequest("Liste")).id();
     }
 
     @Test

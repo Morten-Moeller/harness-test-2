@@ -36,11 +36,14 @@ export class ShoppingListPanel implements OnInit {
   protected readonly error = signal<string | null>(null);
   protected readonly saving = signal(false);
   protected readonly editing = signal(false);
+  protected readonly renaming = signal(false);
   protected readonly newName = signal('');
   protected readonly cannotSubmit = computed(
     () => this.saving() || this.name().trim().length === 0,
   );
-  protected readonly cannotRename = computed(() => this.newName().trim().length === 0);
+  protected readonly cannotRename = computed(
+    () => this.renaming() || this.newName().trim().length === 0,
+  );
   protected readonly visibleItems = computed(() =>
     this.onlyOpen() ? this.items().filter((item) => !item.done) : this.items(),
   );
@@ -109,13 +112,18 @@ export class ShoppingListPanel implements OnInit {
     if (this.cannotRename()) {
       return;
     }
+    this.renaming.set(true);
     this.api.renameList(this.list().id, { name: this.newName().trim() }).subscribe({
       next: () => {
+        this.renaming.set(false);
         this.editing.set(false);
         this.error.set(null);
         this.changed.emit();
       },
-      error: () => this.error.set('Die Einkaufsliste konnte nicht umbenannt werden.'),
+      error: () => {
+        this.renaming.set(false);
+        this.error.set('Die Einkaufsliste konnte nicht umbenannt werden.');
+      },
     });
   }
 

@@ -15,11 +15,17 @@ public class ItemRepository {
 
     private final Map<UUID, Map<UUID, Item>> itemsByList = new ConcurrentHashMap<>();
 
-    public Item save(UUID listId, Item item) {
-        itemsByList
-                .computeIfAbsent(listId, key -> Collections.synchronizedMap(new LinkedHashMap<>()))
-                .put(item.id(), item);
-        return item;
+    public void init(UUID listId) {
+        itemsByList.putIfAbsent(listId, Collections.synchronizedMap(new LinkedHashMap<>()));
+    }
+
+    public Optional<Item> save(UUID listId, Item item) {
+        Map<UUID, Item> items = itemsByList.get(listId);
+        if (items == null) {
+            return Optional.empty();
+        }
+        items.put(item.id(), item);
+        return Optional.of(item);
     }
 
     public boolean setDone(UUID listId, UUID id, boolean done) {

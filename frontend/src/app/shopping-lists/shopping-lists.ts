@@ -52,6 +52,7 @@ export class ShoppingLists implements OnInit {
       next: (lists) => {
         this.lists.set(lists);
         this.loaded.set(true);
+        this.error.set(null);
       },
       error: () => this.error.set('Die Einkaufslisten konnten nicht geladen werden.'),
     });
