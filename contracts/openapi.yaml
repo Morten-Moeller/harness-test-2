@@ -14,6 +14,15 @@ components:
         quantity:
           type: string
           maxLength: 50
+    CreateShoppingListRequest:
+      type: object
+      required:
+      - name
+      properties:
+        name:
+          type: string
+          pattern: \S
+          maxLength: 100
     Item:
       required:
       - id
@@ -32,6 +41,16 @@ components:
           - "null"
         done:
           type: boolean
+    ShoppingList:
+      required:
+      - id
+      - name
+      type: object
+      properties:
+        id:
+          $ref: "#/components/schemas/UUID"
+        name:
+          type: string
     UUID:
       type: string
       format: uuid
@@ -43,8 +62,17 @@ components:
       properties:
         done:
           type: boolean
+    UpdateShoppingListRequest:
+      type: object
+      required:
+      - name
+      properties:
+        name:
+          type: string
+          pattern: \S
+          maxLength: 100
 paths:
-  /api/items:
+  /api/lists:
     get:
       responses:
         "200":
@@ -54,11 +82,97 @@ paths:
               schema:
                 type: array
                 items:
+                  $ref: "#/components/schemas/ShoppingList"
+      summary: List
+      tags:
+      - Shopping List Resource
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateShoppingListRequest"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShoppingList"
+          description: Created
+        "400":
+          description: Bad Request
+      summary: Create
+      tags:
+      - Shopping List Resource
+  /api/lists/{id}:
+    patch:
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UUID"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateShoppingListRequest"
+        required: true
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+      summary: Rename
+      tags:
+      - Shopping List Resource
+    delete:
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UUID"
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+      summary: Delete
+      tags:
+      - Shopping List Resource
+  /api/lists/{listId}/items:
+    get:
+      parameters:
+      - name: listId
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UUID"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
                   $ref: "#/components/schemas/Item"
+        "404":
+          description: Not Found
       summary: List
       tags:
       - Item Resource
     post:
+      parameters:
+      - name: listId
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UUID"
       requestBody:
         content:
           application/json:
@@ -66,6 +180,8 @@ paths:
               $ref: "#/components/schemas/CreateItemRequest"
         required: true
       responses:
+        "404":
+          description: Not Found
         "201":
           content:
             application/json:
@@ -77,10 +193,15 @@ paths:
       summary: Create
       tags:
       - Item Resource
-  /api/items/{id}:
+  /api/lists/{listId}/items/{id}:
     patch:
       parameters:
       - name: id
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UUID"
+      - name: listId
         in: path
         required: true
         schema:
@@ -103,4 +224,4 @@ paths:
       - Item Resource
 info:
   title: Einkaufsliste API
-  version: 1.0.0
+  version: 2.0.0

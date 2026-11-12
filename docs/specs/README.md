@@ -11,6 +11,7 @@ Jede Änderung beginnt mit einer Spec (`harness/workflow.md`). Statuswerte: `dra
 | 0003 | Grundregeln im Code von Feature 0001 umsetzen | medium | done | #9 | 2026-11-11 | – | alle Kriterien erfüllt, kein Browser-Test nötig |
 | 0004 | Artikel erledigen und Filter | high | done | #11 | 2026-11-11 | – | alle Kriterien erfüllt, Browser-Test auf 4201 |
 | 0005 | Harness 0.6.0 übernehmen | high | done | #13 | 2026-11-11 | – | alle Kriterien erfüllt, kein Browser-Test nötig |
+| 0006 | Mehrere Einkaufslisten mit Überschrift, nebeneinander oder untereinander | high | done | #15 | 2026-11-12 | – | alle Kriterien erfüllt, Browser-Test auf 4201 |
 
 ## Entscheidungen
 
@@ -29,3 +30,7 @@ Antworten auf offene Fragen aus Specs, mit der Person, die entschieden hat.
 | 2026-11-11 | 0004 | Der Filter "nur offene" wirkt nur im Frontend; `GET /api/items` bleibt ohne Parameter. | Morten Möller |
 | 2026-11-11 | 0004 | Erledigt über eine Checkbox pro Zeile, Wiederöffnen durch Abhaken. | Morten Möller |
 | 2026-11-11 | 0004 | `PATCH /api/items/{id}` antwortet 204, das Frontend lädt die Liste neu (ADR 0008, A2.4). | Morten Möller |
+| 2026-11-12 | 0006 | Anordnung über einen Umschalter in der Oberfläche; beim Laden `Nebeneinander`; keine Speicherung. | Morten Möller |
+| 2026-11-12 | 0006 | Artikel als Unterressource `/api/lists/{listId}/items`; `/api/items` entfällt, Contract 2.0.0 (ADR 0010). | Morten Möller |
+| 2026-11-12 | 0006 | Einkaufslisten anlegen, umbenennen und löschen in dieser Spec; Löschen sofort ohne Dialog. | Morten Möller |
+| 2026-11-12 | 0006 | Formular für Artikel und Filter `Nur offene anzeigen` je Einkaufsliste. | Morten Möller |

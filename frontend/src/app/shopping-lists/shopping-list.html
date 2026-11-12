@@ -1,0 +1,94 @@
+<section class="panel" [attr.aria-label]="list().name">
+  <div class="heading">
+    @if (editing()) {
+      <form class="rename" (ngSubmit)="saveRename()">
+        <label class="visually-hidden" for="list-rename-{{ list().id }}">Name</label>
+        <input
+          id="list-rename-{{ list().id }}"
+          name="newName"
+          type="text"
+          maxlength="100"
+          autocomplete="off"
+          #renameInput
+          [ngModel]="newName()"
+          (ngModelChange)="newName.set($event)"
+        />
+        <button type="submit" [disabled]="cannotRename()">Speichern</button>
+        <button type="button" class="secondary" (click)="cancelRename()">Abbrechen</button>
+      </form>
+    } @else {
+      <h2>{{ list().name }}</h2>
+      <div class="actions">
+        <button type="button" class="secondary" (click)="startRename()">Umbenennen</button>
+        <button type="button" class="secondary" (click)="remove()">Löschen</button>
+      </div>
+    }
+  </div>
+
+  <form class="form" (ngSubmit)="submit()">
+    <div class="field">
+      <label for="item-name-{{ list().id }}">Name</label>
+      <input
+        id="item-name-{{ list().id }}"
+        name="name"
+        type="text"
+        maxlength="100"
+        autocomplete="off"
+        #nameInput
+        [ngModel]="name()"
+        (ngModelChange)="name.set($event)"
+      />
+    </div>
+    <div class="field">
+      <label for="item-quantity-{{ list().id }}">Menge</label>
+      <input
+        id="item-quantity-{{ list().id }}"
+        name="quantity"
+        type="text"
+        maxlength="50"
+        autocomplete="off"
+        [ngModel]="quantity()"
+        (ngModelChange)="quantity.set($event)"
+      />
+    </div>
+    <button type="submit" [disabled]="cannotSubmit()">Hinzufügen</button>
+  </form>
+
+  @if (error(); as message) {
+    <p class="error" role="alert">{{ message }}</p>
+  }
+
+  <div class="filter">
+    <label for="only-open-{{ list().id }}">
+      <input
+        id="only-open-{{ list().id }}"
+        type="checkbox"
+        #onlyOpenInput
+        [checked]="onlyOpen()"
+        (change)="onlyOpen.set(onlyOpenInput.checked)"
+      />
+      Nur offene anzeigen
+    </label>
+  </div>
+
+  <ul class="items" aria-label="Artikel">
+    @for (item of visibleItems(); track item.id) {
+      <li class="item">
+        <label class="item-check">
+          <input
+            type="checkbox"
+            #doneInput
+            [checked]="item.done"
+            (change)="toggleDone(item, doneInput)"
+          />
+          <span class="item-name" [class.done]="item.done">{{ item.name }}</span>
+        </label>
+        @if (item.quantity) {
+          <span class="item-quantity">{{ item.quantity }}</span>
+        }
+      </li>
+    } @empty {
+      <li class="empty">{{ emptyText() }}</li>
+    }
+  </ul>
+</section>

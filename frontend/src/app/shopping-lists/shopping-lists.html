@@ -1,0 +1,60 @@
+<form class="list-form" (ngSubmit)="submit()">
+  <fieldset>
+    <legend>Neue Einkaufsliste</legend>
+    <div class="row">
+      <div class="field">
+        <label for="list-name">Name</label>
+        <input
+          id="list-name"
+          name="name"
+          type="text"
+          maxlength="100"
+          autocomplete="off"
+          [ngModel]="listName()"
+          (ngModelChange)="listName.set($event)"
+        />
+      </div>
+      <button type="submit" [disabled]="cannotSubmit()">Anlegen</button>
+    </div>
+  </fieldset>
+</form>
+
+<fieldset class="layout">
+  <legend>Anordnung</legend>
+  <label for="layout-columns">
+    <input
+      id="layout-columns"
+      name="layout"
+      type="radio"
+      value="columns"
+      [checked]="layout() === 'columns'"
+      (change)="layout.set('columns')"
+    />
+    Nebeneinander
+  </label>
+  <label for="layout-rows">
+    <input
+      id="layout-rows"
+      name="layout"
+      type="radio"
+      value="rows"
+      [checked]="layout() === 'rows'"
+      (change)="layout.set('rows')"
+    />
+    Untereinander
+  </label>
+</fieldset>
+
+@if (error(); as message) {
+  <p class="error" role="alert">{{ message }}</p>
+}
+
+<div class="lists" [class.columns]="layout() === 'columns'">
+  @for (list of lists(); track list.id) {
+    <app-shopping-list [list]="list" (changed)="load()" />
+  } @empty {
+    @if (loaded()) {
+      <p class="no-lists">Noch keine Einkaufslisten.</p>
+    }
+  }
+</div>

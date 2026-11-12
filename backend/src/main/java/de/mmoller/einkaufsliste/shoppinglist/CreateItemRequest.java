@@ -1,4 +1,4 @@
-package de.mmoller.einkaufsliste.item;
+package de.mmoller.einkaufsliste.shoppinglist;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

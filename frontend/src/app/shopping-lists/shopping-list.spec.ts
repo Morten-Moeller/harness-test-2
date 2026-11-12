@@ -1,8 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { Items } from './items';
-import { Item } from './items-api';
+import { ShoppingListPanel } from './shopping-list';
+import { Item, ShoppingList } from './shopping-lists-api';
 
 function anItem(overrides: Partial<Item> = {}): Item {
   return {
@@ -14,20 +14,31 @@ function anItem(overrides: Partial<Item> = {}): Item {
   };
 }
 
+const rewe: ShoppingList = { id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', name: 'Rewe' };
+const itemsUrl = `/api/lists/${rewe.id}/items`;
 const milch = anItem({ id: '11111111-1111-1111-1111-111111111111', name: 'Milch' });
 const brot = anItem({ id: '22222222-2222-2222-2222-222222222222', name: 'Brot', done: true });
 
-describe('Items without a backend', () => {
-  it('shows an error when the list cannot be loaded', async () => {
-    await TestBed.configureTestingModule({
-      imports: [Items],
-      providers: [provideHttpClient(), provideHttpClientTesting()],
-    }).compileComponents();
-    const http = TestBed.inject(HttpTestingController);
-    const fixture = TestBed.createComponent(Items);
-    await fixture.whenStable();
+async function createPanel(): Promise<{
+  fixture: ComponentFixture<ShoppingListPanel>;
+  http: HttpTestingController;
+}> {
+  await TestBed.configureTestingModule({
+    imports: [ShoppingListPanel],
+    providers: [provideHttpClient(), provideHttpClientTesting()],
+  }).compileComponents();
+  const http = TestBed.inject(HttpTestingController);
+  const fixture = TestBed.createComponent(ShoppingListPanel);
+  fixture.componentRef.setInput('list', rewe);
+  await fixture.whenStable();
+  return { fixture, http };
+}
+
+describe('ShoppingListPanel without a backend', () => {
+  it('shows an error when the items cannot be loaded', async () => {
+    const { fixture, http } = await createPanel();
     http
-      .expectOne({ method: 'GET', url: '/api/items' })
+      .expectOne({ method: 'GET', url: itemsUrl })
       .flush({}, { status: 500, statusText: 'Error' });
     await fixture.whenStable();
 
@@ -39,14 +50,15 @@ describe('Items without a backend', () => {
   });
 });
 
-describe('Items', () => {
-  let fixture: ComponentFixture<Items>;
+describe('ShoppingListPanel', () => {
+  let fixture: ComponentFixture<ShoppingListPanel>;
   let http: HttpTestingController;
 
   const element = (): HTMLElement => fixture.nativeElement as HTMLElement;
-  const nameInput = (): HTMLInputElement => element().querySelector('#item-name')!;
-  const quantityInput = (): HTMLInputElement => element().querySelector('#item-quantity')!;
-  const button = (): HTMLButtonElement => element().querySelector('button[type=submit]')!;
+  const nameInput = (): HTMLInputElement => element().querySelector(`#item-name-${rewe.id}`)!;
+  const quantityInput = (): HTMLInputElement =>
+    element().querySelector(`#item-quantity-${rewe.id}`)!;
+  const button = (): HTMLButtonElement => element().querySelector('.form button[type=submit]')!;
 
   const type = async (input: HTMLInputElement, value: string): Promise<void> => {
     input.value = value;
@@ -55,18 +67,20 @@ describe('Items', () => {
   };
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [Items],
-      providers: [provideHttpClient(), provideHttpClientTesting()],
-    }).compileComponents();
-    http = TestBed.inject(HttpTestingController);
-    fixture = TestBed.createComponent(Items);
-    await fixture.whenStable();
-    http.expectOne({ method: 'GET', url: '/api/items' }).flush([]);
+    ({ fixture, http } = await createPanel());
+    http.expectOne({ method: 'GET', url: itemsUrl }).flush([]);
     await fixture.whenStable();
   });
 
   afterEach(() => http.verify());
+
+  it('shows the list name as heading with Umbenennen and Löschen', () => {
+    expect(element().querySelector('h2')?.textContent).toContain('Rewe');
+    const labels = Array.from(element().querySelectorAll('.actions button')).map((b) =>
+      b.textContent?.trim(),
+    );
+    expect(labels).toEqual(['Umbenennen', 'Löschen']);
+  });
 
   it('disables the button while the request is pending', async () => {
     await type(nameInput(), 'Milch');
@@ -75,18 +89,22 @@ describe('Items', () => {
 
     expect(button().disabled).toBe(true);
     http
-      .expectOne({ method: 'POST', url: '/api/items' })
+      .expectOne({ method: 'POST', url: itemsUrl })
       .flush(anItem(), { status: 201, statusText: 'Created' });
     await fixture.whenStable();
-    http.expectOne({ method: 'GET', url: '/api/items' }).flush([anItem()]);
+    http.expectOne({ method: 'GET', url: itemsUrl }).flush([anItem()]);
     await fixture.whenStable();
     expect(button().disabled).toBe(true);
     expect(nameInput().value).toBe('');
   });
 
   it('renders the form with labelled fields and the button', () => {
-    expect(element().querySelector('label[for=item-name]')?.textContent).toContain('Name');
-    expect(element().querySelector('label[for=item-quantity]')?.textContent).toContain('Menge');
+    expect(element().querySelector(`label[for=item-name-${rewe.id}]`)?.textContent).toContain(
+      'Name',
+    );
+    expect(element().querySelector(`label[for=item-quantity-${rewe.id}]`)?.textContent).toContain(
+      'Menge',
+    );
     expect(button().textContent).toContain('Hinzufügen');
   });
 
@@ -103,7 +121,7 @@ describe('Items', () => {
     await type(quantityInput(), '1 l');
     button().click();
 
-    const request = http.expectOne({ method: 'POST', url: '/api/items' });
+    const request = http.expectOne({ method: 'POST', url: itemsUrl });
     expect(request.request.body).toEqual({ name: 'Milch', quantity: '1 l' });
     request.flush(anItem({ name: 'Milch', quantity: '1 l' }), {
       status: 201,
@@ -111,7 +129,7 @@ describe('Items', () => {
     });
     await fixture.whenStable();
     http
-      .expectOne({ method: 'GET', url: '/api/items' })
+      .expectOne({ method: 'GET', url: itemsUrl })
       .flush([anItem({ name: 'Milch', quantity: '1 l' })]);
     await fixture.whenStable();
 
@@ -129,7 +147,7 @@ describe('Items', () => {
     button().click();
 
     http
-      .expectOne({ method: 'POST', url: '/api/items' })
+      .expectOne({ method: 'POST', url: itemsUrl })
       .flush({}, { status: 400, statusText: 'Bad Request' });
     await fixture.whenStable();
 
@@ -141,17 +159,17 @@ describe('Items', () => {
   });
 
   it('shows the filter unchecked and the empty text', () => {
-    const filter = element().querySelector<HTMLInputElement>('#only-open')!;
+    const filter = element().querySelector<HTMLInputElement>(`#only-open-${rewe.id}`)!;
     expect(filter.checked).toBe(false);
-    expect(element().querySelector('label[for=only-open]')?.textContent).toContain(
+    expect(element().querySelector(`label[for=only-open-${rewe.id}]`)?.textContent).toContain(
       'Nur offene anzeigen',
     );
     expect(element().querySelector('.empty')?.textContent).toContain('Noch keine Artikel.');
   });
 });
 
-describe('Items with stored items', () => {
-  let fixture: ComponentFixture<Items>;
+describe('ShoppingListPanel with stored items', () => {
+  let fixture: ComponentFixture<ShoppingListPanel>;
   let http: HttpTestingController;
 
   const element = (): HTMLElement => fixture.nativeElement as HTMLElement;
@@ -160,7 +178,7 @@ describe('Items with stored items', () => {
     rows()
       .find((row) => row.querySelector('.item-name')?.textContent?.trim() === name)!
       .querySelector<HTMLInputElement>('input[type=checkbox]')!;
-  const filter = (): HTMLInputElement => element().querySelector('#only-open')!;
+  const filter = (): HTMLInputElement => element().querySelector(`#only-open-${rewe.id}`)!;
 
   const setFilter = async (checked: boolean): Promise<void> => {
     filter().checked = checked;
@@ -169,18 +187,12 @@ describe('Items with stored items', () => {
   };
 
   const load = async (items: Item[]): Promise<void> => {
-    http.expectOne({ method: 'GET', url: '/api/items' }).flush(items);
+    http.expectOne({ method: 'GET', url: itemsUrl }).flush(items);
     await fixture.whenStable();
   };
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [Items],
-      providers: [provideHttpClient(), provideHttpClientTesting()],
-    }).compileComponents();
-    http = TestBed.inject(HttpTestingController);
-    fixture = TestBed.createComponent(Items);
-    await fixture.whenStable();
+    ({ fixture, http } = await createPanel());
     await load([milch, brot]);
   });
 
@@ -204,7 +216,7 @@ describe('Items with stored items', () => {
     checkboxOf('Milch').click();
     await fixture.whenStable();
 
-    const request = http.expectOne({ method: 'PATCH', url: `/api/items/${milch.id}` });
+    const request = http.expectOne({ method: 'PATCH', url: `${itemsUrl}/${milch.id}` });
     expect(request.request.body).toEqual({ done: true });
     request.flush(null, { status: 204, statusText: 'No Content' });
     await fixture.whenStable();
@@ -218,7 +230,7 @@ describe('Items with stored items', () => {
     checkboxOf('Brot').click();
     await fixture.whenStable();
 
-    const request = http.expectOne({ method: 'PATCH', url: `/api/items/${brot.id}` });
+    const request = http.expectOne({ method: 'PATCH', url: `${itemsUrl}/${brot.id}` });
     expect(request.request.body).toEqual({ done: false });
     request.flush(null, { status: 204, statusText: 'No Content' });
     await fixture.whenStable();
@@ -232,7 +244,7 @@ describe('Items with stored items', () => {
     await fixture.whenStable();
 
     http
-      .expectOne({ method: 'PATCH', url: `/api/items/${milch.id}` })
+      .expectOne({ method: 'PATCH', url: `${itemsUrl}/${milch.id}` })
       .flush({}, { status: 500, statusText: 'Error' });
     await fixture.whenStable();
     await load([milch, brot]);
@@ -257,14 +269,14 @@ describe('Items with stored items', () => {
     await setFilter(true);
     await setFilter(false);
 
-    http.expectNone({ method: 'GET', url: '/api/items' });
+    http.expectNone({ method: 'GET', url: itemsUrl });
   });
 
   it('shows Keine offenen Artikel when the filter hides everything', async () => {
     checkboxOf('Milch').click();
     await fixture.whenStable();
     http
-      .expectOne({ method: 'PATCH', url: `/api/items/${milch.id}` })
+      .expectOne({ method: 'PATCH', url: `${itemsUrl}/${milch.id}` })
       .flush(null, { status: 204, statusText: 'No Content' });
     await fixture.whenStable();
     await load([{ ...milch, done: true }, brot]);
