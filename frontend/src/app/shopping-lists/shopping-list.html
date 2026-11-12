@@ -77,8 +77,10 @@
   <ul
     class="items"
     aria-label="Artikel"
+    id="items-{{ list().id }}"
     cdkDropList
     [cdkDropListData]="list()"
+    [cdkDropListConnectedTo]="connectedTo()"
     (cdkDropListDropped)="dropped($event)"
   >
     @for (

@@ -24,6 +24,7 @@ import { Item, ShoppingList, ShoppingListsApi, UpdateItemRequest } from './shopp
 })
 export class ShoppingListPanel implements OnInit {
   readonly list = input.required<ShoppingList>();
+  readonly connectedTo = input<string[]>([]);
   readonly changed = output<void>();
   readonly moved = output<string>();
 

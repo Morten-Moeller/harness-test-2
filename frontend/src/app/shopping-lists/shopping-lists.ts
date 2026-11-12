@@ -1,10 +1,4 @@
-import {
-  CdkDrag,
-  CdkDragDrop,
-  CdkDragHandle,
-  CdkDropList,
-  CdkDropListGroup,
-} from '@angular/cdk/drag-drop';
+import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList } from '@angular/cdk/drag-drop';
 import { Component, OnInit, computed, inject, signal, viewChildren } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ShoppingListPanel } from './shopping-list';
@@ -14,7 +8,7 @@ export type Layout = 'columns' | 'rows';
 
 @Component({
   selector: 'app-shopping-lists',
-  imports: [FormsModule, ShoppingListPanel, CdkDropListGroup, CdkDropList, CdkDrag, CdkDragHandle],
+  imports: [FormsModule, ShoppingListPanel, CdkDropList, CdkDrag, CdkDragHandle],
   templateUrl: './shopping-lists.html',
   styleUrl: './shopping-lists.css',
 })
@@ -30,6 +24,9 @@ export class ShoppingLists implements OnInit {
   protected readonly saving = signal(false);
   protected readonly cannotSubmit = computed(
     () => this.saving() || this.listName().trim().length === 0,
+  );
+  protected readonly itemDropListIds = computed(() =>
+    this.lists().map((list) => `items-${list.id}`),
   );
 
   ngOnInit(): void {
