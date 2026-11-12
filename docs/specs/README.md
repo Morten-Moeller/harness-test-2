@@ -12,7 +12,7 @@ Jede Änderung beginnt mit einer Spec (`harness/workflow.md`). Statuswerte: `dra
 | 0004 | Artikel erledigen und Filter | high | done | #11 | 2026-11-11 | – | alle Kriterien erfüllt, Browser-Test auf 4201 |
 | 0005 | Harness 0.6.0 übernehmen | high | done | #13 | 2026-11-11 | – | alle Kriterien erfüllt, kein Browser-Test nötig |
 | 0006 | Mehrere Einkaufslisten mit Überschrift, nebeneinander oder untereinander | high | done | #15 | 2026-11-12 | – | alle Kriterien erfüllt, Browser-Test auf 4201 |
-| 0007 | Einkaufslisten und Artikel per Drag and Drop sortieren | high | Review | – | 2026-11-12 | – | – |
+| 0007 | Einkaufslisten und Artikel per Drag and Drop sortieren | high | done | #16 | 2026-11-12 | – | alle Kriterien erfüllt, Browser-Test auf 4201 |
 
 ## Entscheidungen
 

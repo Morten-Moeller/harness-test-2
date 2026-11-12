@@ -1,7 +1,7 @@
 ---
 id: "0007"
 title: Einkaufslisten und Artikel per Drag and Drop sortieren
-status: approved
+status: done
 risk: high
 adrs: ["0011", "0012"]
 owner: Morten Möller
