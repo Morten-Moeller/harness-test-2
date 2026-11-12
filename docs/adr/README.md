@@ -13,3 +13,4 @@ Wann ein ADR nötig ist: `harness/policies/adr.md`. Vorlage: `0000-template.md`.
 | 0007 | JSON-Logs mit quarkus-logging-json und Request-Id im MDC | accepted | 2026-11-11 |
 | 0008 | Zustandsänderungen eines Artikels über PATCH mit Teilobjekt und Antwort 204 | accepted | 2026-11-11 |
 | 0009 | Verifikation vor dem Merge, G3 als Status verified | accepted | 2026-11-11 |
+| 0010 | Artikel als Unterressource der Einkaufsliste, Contract 2.0.0 | accepted | 2026-11-12 |
