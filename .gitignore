@@ -9,3 +9,4 @@ osv-scanner-results.json
 target/
 coverage/
 contracts/openapi.json
+.idea/
