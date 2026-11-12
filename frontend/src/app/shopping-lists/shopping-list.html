@@ -77,7 +77,7 @@
   <ul
     class="items"
     aria-label="Artikel"
-    id="items-{{ list().id }}"
+    [id]="dropListId()"
     cdkDropList
     [cdkDropListData]="list()"
     [cdkDropListConnectedTo]="connectedTo()"

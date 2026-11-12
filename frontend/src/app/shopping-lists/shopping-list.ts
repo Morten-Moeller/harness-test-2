@@ -16,6 +16,10 @@ import { FormsModule } from '@angular/forms';
 import { positionAfterMove } from './order';
 import { Item, ShoppingList, ShoppingListsApi, UpdateItemRequest } from './shopping-lists-api';
 
+export function itemDropListId(listId: string): string {
+  return `items-${listId}`;
+}
+
 @Component({
   selector: 'app-shopping-list',
   imports: [FormsModule, CdkDropList, CdkDrag, CdkDragHandle],
@@ -25,6 +29,7 @@ import { Item, ShoppingList, ShoppingListsApi, UpdateItemRequest } from './shopp
 export class ShoppingListPanel implements OnInit {
   readonly list = input.required<ShoppingList>();
   readonly connectedTo = input<string[]>([]);
+  protected readonly dropListId = computed(() => itemDropListId(this.list().id));
   readonly changed = output<void>();
   readonly moved = output<string>();
 

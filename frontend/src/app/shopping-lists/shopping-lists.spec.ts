@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { CdkDropList } from '@angular/cdk/drag-drop';
 import { By } from '@angular/platform-browser';
 import { ShoppingListPanel } from './shopping-list';
 import { ShoppingLists } from './shopping-lists';
@@ -374,6 +375,15 @@ describe('ShoppingLists moving lists', () => {
       'Die Einkaufsliste konnte nicht verschoben werden.',
     );
     expect(names()).toEqual(['Rewe', 'Edeka']);
+  });
+
+  it('connects the item drop lists of all panels', () => {
+    const dropLists = fixture.debugElement.queryAll(By.css('ul.items'));
+    const ids = dropLists.map((ul) => (ul.nativeElement as HTMLElement).id);
+    expect(ids).toEqual([`items-${rewe.id}`, `items-${edeka.id}`]);
+    for (const ul of dropLists) {
+      expect(ul.injector.get(CdkDropList).connectedTo).toEqual(ids);
+    }
   });
 
   it('reloads the source panel after moved', async () => {
