@@ -14,3 +14,5 @@ Wann ein ADR nötig ist: `harness/policies/adr.md`. Vorlage: `0000-template.md`.
 | 0008 | Zustandsänderungen eines Artikels über PATCH mit Teilobjekt und Antwort 204 | accepted | 2026-11-11 |
 | 0009 | Verifikation vor dem Merge, G3 als Status verified | accepted | 2026-11-11 |
 | 0010 | Artikel als Unterressource der Einkaufsliste, Contract 2.0.0 | accepted | 2026-11-12 |
+| 0011 | Sortierung und Verschieben über die optionalen Felder position und listId in PATCH | accepted | 2026-11-12 |
+| 0012 | @angular/cdk (DragDropModule) für Drag and Drop, Tastaturweg über Buttons | accepted | 2026-11-12 |
