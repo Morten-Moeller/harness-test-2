@@ -10,7 +10,7 @@
 # open a pull request.
 set -euo pipefail
 
-usage() { sed -n '2,11p' "$0" | sed 's/^# \{0,1\}//'; }
+usage() { awk 'NR > 1 && /^#/ { sub(/^# ?/, ""); print; next } NR > 1 { exit }' "$0"; }
 
 SOURCE=""
 REF=""
@@ -46,7 +46,7 @@ echo "harness $from_version -> $to_version"
 resolve() { # "src => dst" or "path" -> prints "src<TAB>dst"
   local line="$1"
   case "$line" in
-    *"=>"*) printf '%s\t%s\n' "$(printf '%s' "${line%%=>*}" | sed 's/[ \t]*$//')" "$(printf '%s' "${line#*=>}" | sed 's/^[ \t]*//')" ;;
+    *"=>"*) printf '%s\t%s\n' "$(printf '%s' "${line%%=>*}" | sed 's/[[:space:]]*$//')" "$(printf '%s' "${line#*=>}" | sed 's/^[[:space:]]*//')" ;;
     *) printf '%s\t%s\n' "$line" "$line" ;;
   esac
 }
@@ -64,7 +64,7 @@ copy_path() { # <src> <dst>
 
 section=copy
 while IFS= read -r line || [ -n "$line" ]; do
-  line=$(printf '%s' "$line" | sed 's/^[ \t]*//; s/[ \t]*$//')
+  line=$(printf '%s' "$line" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')
   [ -z "$line" ] && continue
   case "$line" in
     \#*) continue ;;
