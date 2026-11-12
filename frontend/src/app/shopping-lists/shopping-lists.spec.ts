@@ -390,7 +390,7 @@ describe('ShoppingLists moving lists', () => {
     const target = fixture.debugElement.queryAll(By.directive(ShoppingListPanel))[1]
       .componentInstance as ShoppingListPanel;
 
-    target.moved.emit(rewe.id);
+    target.moved.emit({ listId: rewe.id, itemId: '99999999-9999-9999-9999-999999999999' });
     await fixture.whenStable();
 
     http

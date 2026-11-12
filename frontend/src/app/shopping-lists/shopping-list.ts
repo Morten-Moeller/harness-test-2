@@ -13,7 +13,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { positionAfterMove } from './order';
+import { moveInArray, positionAfterMove } from './order';
 import { Item, ShoppingList, ShoppingListsApi, UpdateItemRequest } from './shopping-lists-api';
 
 export function itemDropListId(listId: string): string {
@@ -31,7 +31,7 @@ export class ShoppingListPanel implements OnInit {
   readonly connectedTo = input<string[]>([]);
   protected readonly dropListId = computed(() => itemDropListId(this.list().id));
   readonly changed = output<void>();
-  readonly moved = output<string>();
+  readonly moved = output<{ listId: string; itemId: string }>();
 
   private readonly api = inject(ShoppingListsApi);
   private readonly injector = inject(Injector);
@@ -66,6 +66,10 @@ export class ShoppingListPanel implements OnInit {
 
   reload(): void {
     this.load();
+  }
+
+  removeLocally(itemId: string): void {
+    this.items.set(this.items().filter((item) => item.id !== itemId));
   }
 
   protected submit(): void {
@@ -107,6 +111,7 @@ export class ShoppingListPanel implements OnInit {
       return;
     }
     const position = positionAfterMove(this.items(), visible, fromVisible, toVisible);
+    this.items.set(moveInArray(this.items(), this.items().indexOf(item), position));
     this.updateItem(item, { position }, 'Der Artikel konnte nicht verschoben werden.');
   }
 
@@ -123,13 +128,16 @@ export class ShoppingListPanel implements OnInit {
       event.currentIndex >= visible.length
         ? this.items().length
         : this.items().indexOf(visible[event.currentIndex]);
+    const next = [...this.items()];
+    next.splice(position, 0, event.item.data);
+    this.items.set(next);
     this.api
       .updateItem(source.id, event.item.data.id, { listId: this.list().id, position })
       .subscribe({
         next: () => {
           this.error.set(null);
           this.load();
-          this.moved.emit(source.id);
+          this.moved.emit({ listId: source.id, itemId: event.item.data.id });
         },
         error: () => {
           this.error.set('Der Artikel konnte nicht verschoben werden.');
