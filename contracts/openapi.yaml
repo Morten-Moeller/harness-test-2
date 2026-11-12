@@ -57,20 +57,35 @@ components:
       pattern: "[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}"
     UpdateItemRequest:
       type: object
-      required:
-      - done
       properties:
         done:
-          type: boolean
+          type:
+          - boolean
+          - "null"
+        position:
+          type:
+          - integer
+          - "null"
+          format: int32
+          minimum: 0
+        listId:
+          anyOf:
+          - $ref: "#/components/schemas/UUID"
+          - type: "null"
     UpdateShoppingListRequest:
       type: object
-      required:
-      - name
       properties:
         name:
-          type: string
-          pattern: \S
+          type:
+          - string
+          - "null"
           maxLength: 100
+        position:
+          type:
+          - integer
+          - "null"
+          format: int32
+          minimum: 0
 paths:
   /api/lists:
     get:
@@ -126,7 +141,7 @@ paths:
           description: Bad Request
         "404":
           description: Not Found
-      summary: Rename
+      summary: Update
       tags:
       - Shopping List Resource
     delete:
@@ -219,7 +234,7 @@ paths:
           description: Bad Request
         "404":
           description: Not Found
-      summary: Set Done
+      summary: Update
       tags:
       - Item Resource
 info:

@@ -49,9 +49,47 @@
   <p class="error" role="alert">{{ message }}</p>
 }
 
-<div class="lists" [class.columns]="layout() === 'columns'">
-  @for (list of lists(); track list.id) {
-    <app-shopping-list [list]="list" (changed)="load()" />
+<div
+  class="lists"
+  [class.columns]="layout() === 'columns'"
+  cdkDropListGroup
+  cdkDropList
+  cdkDropListOrientation="mixed"
+  [cdkDropListData]="lists()"
+  (cdkDropListDropped)="dropped($event)"
+>
+  @for (list of lists(); track list.id; let first = $first; let last = $last; let i = $index) {
+    <app-shopping-list
+      cdkDrag
+      [cdkDragData]="list"
+      [list]="list"
+      (changed)="load()"
+      (moved)="onMoved($event)"
+    >
+      <span listControls class="list-controls">
+        <button type="button" class="handle" cdkDragHandle aria-label="Einkaufsliste ziehen">
+          ⠿
+        </button>
+        <button
+          type="button"
+          class="move"
+          [attr.aria-label]="'Nach oben: ' + list.name"
+          [disabled]="first"
+          (click)="moveList(list, i - 1)"
+        >
+          Nach oben
+        </button>
+        <button
+          type="button"
+          class="move"
+          [attr.aria-label]="'Nach unten: ' + list.name"
+          [disabled]="last"
+          (click)="moveList(list, i + 1)"
+        >
+          Nach unten
+        </button>
+      </span>
+    </app-shopping-list>
   } @empty {
     @if (loaded()) {
       <p class="no-lists">Noch keine Einkaufslisten.</p>

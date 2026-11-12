@@ -1,3 +1,4 @@
+import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList } from '@angular/cdk/drag-drop';
 import {
   Component,
   ElementRef,
@@ -12,17 +13,19 @@ import {
   viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Item, ShoppingList, ShoppingListsApi } from './shopping-lists-api';
+import { positionAfterMove } from './order';
+import { Item, ShoppingList, ShoppingListsApi, UpdateItemRequest } from './shopping-lists-api';
 
 @Component({
   selector: 'app-shopping-list',
-  imports: [FormsModule],
+  imports: [FormsModule, CdkDropList, CdkDrag, CdkDragHandle],
   templateUrl: './shopping-list.html',
   styleUrl: './shopping-list.css',
 })
 export class ShoppingListPanel implements OnInit {
   readonly list = input.required<ShoppingList>();
   readonly changed = output<void>();
+  readonly moved = output<string>();
 
   private readonly api = inject(ShoppingListsApi);
   private readonly injector = inject(Injector);
@@ -55,6 +58,10 @@ export class ShoppingListPanel implements OnInit {
     this.load();
   }
 
+  reload(): void {
+    this.load();
+  }
+
   protected submit(): void {
     if (this.cannotSubmit()) {
       return;
@@ -84,16 +91,45 @@ export class ShoppingListPanel implements OnInit {
 
   protected toggleDone(item: Item, checkbox: HTMLInputElement): void {
     checkbox.checked = item.done;
-    this.api.setDone(this.list().id, item.id, { done: !item.done }).subscribe({
-      next: () => {
-        this.error.set(null);
-        this.load();
-      },
-      error: () => {
-        this.error.set('Der Artikel konnte nicht geändert werden.');
-        this.load();
-      },
-    });
+    this.updateItem(item, { done: !item.done }, 'Der Artikel konnte nicht geändert werden.');
+  }
+
+  protected moveItem(item: Item, toVisible: number): void {
+    const visible = this.visibleItems();
+    const fromVisible = visible.indexOf(item);
+    if (fromVisible < 0 || toVisible < 0 || toVisible >= visible.length) {
+      return;
+    }
+    const position = positionAfterMove(this.items(), visible, fromVisible, toVisible);
+    this.updateItem(item, { position }, 'Der Artikel konnte nicht verschoben werden.');
+  }
+
+  protected dropped(event: CdkDragDrop<ShoppingList, ShoppingList, Item>): void {
+    if (event.previousContainer === event.container) {
+      if (event.previousIndex !== event.currentIndex) {
+        this.moveItem(this.visibleItems()[event.previousIndex], event.currentIndex);
+      }
+      return;
+    }
+    const source = event.previousContainer.data;
+    const visible = this.visibleItems();
+    const position =
+      event.currentIndex >= visible.length
+        ? this.items().length
+        : this.items().indexOf(visible[event.currentIndex]);
+    this.api
+      .updateItem(source.id, event.item.data.id, { listId: this.list().id, position })
+      .subscribe({
+        next: () => {
+          this.error.set(null);
+          this.load();
+          this.moved.emit(source.id);
+        },
+        error: () => {
+          this.error.set('Der Artikel konnte nicht verschoben werden.');
+          this.load();
+        },
+      });
   }
 
   protected startRename(): void {
@@ -113,7 +149,7 @@ export class ShoppingListPanel implements OnInit {
       return;
     }
     this.renaming.set(true);
-    this.api.renameList(this.list().id, { name: this.newName().trim() }).subscribe({
+    this.api.updateList(this.list().id, { name: this.newName().trim() }).subscribe({
       next: () => {
         this.renaming.set(false);
         this.editing.set(false);
@@ -131,6 +167,19 @@ export class ShoppingListPanel implements OnInit {
     this.api.deleteList(this.list().id).subscribe({
       next: () => this.changed.emit(),
       error: () => this.error.set('Die Einkaufsliste konnte nicht gelöscht werden.'),
+    });
+  }
+
+  private updateItem(item: Item, request: UpdateItemRequest, errorText: string): void {
+    this.api.updateItem(this.list().id, item.id, request).subscribe({
+      next: () => {
+        this.error.set(null);
+        this.load();
+      },
+      error: () => {
+        this.error.set(errorText);
+        this.load();
+      },
     });
   }
 

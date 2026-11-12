@@ -2,6 +2,7 @@ package de.mmoller.einkaufsliste.shoppinglist;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -52,11 +53,12 @@ public class ShoppingListResource {
     @APIResponse(responseCode = "204", description = "No Content")
     @APIResponse(responseCode = "400", description = "Bad Request")
     @APIResponse(responseCode = "404", description = "Not Found")
-    public Response rename(@PathParam("id") UUID id, @NotNull @Valid UpdateShoppingListRequest request) {
-        if (!service.rename(id, request.name())) {
-            throw new NotFoundException();
-        }
-        return Response.noContent().build();
+    public Response update(@PathParam("id") UUID id, @NotNull @Valid UpdateShoppingListRequest request) {
+        return switch (service.update(id, request)) {
+            case OK -> Response.noContent().build();
+            case NOT_FOUND, TARGET_NOT_FOUND -> throw new NotFoundException();
+            case INVALID_POSITION, INVALID -> throw new BadRequestException();
+        };
     }
 
     @DELETE

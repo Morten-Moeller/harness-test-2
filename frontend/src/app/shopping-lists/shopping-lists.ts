@@ -1,4 +1,11 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import {
+  CdkDrag,
+  CdkDragDrop,
+  CdkDragHandle,
+  CdkDropList,
+  CdkDropListGroup,
+} from '@angular/cdk/drag-drop';
+import { Component, OnInit, computed, inject, signal, viewChildren } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ShoppingListPanel } from './shopping-list';
 import { ShoppingList, ShoppingListsApi } from './shopping-lists-api';
@@ -7,12 +14,13 @@ export type Layout = 'columns' | 'rows';
 
 @Component({
   selector: 'app-shopping-lists',
-  imports: [FormsModule, ShoppingListPanel],
+  imports: [FormsModule, ShoppingListPanel, CdkDropListGroup, CdkDropList, CdkDrag, CdkDragHandle],
   templateUrl: './shopping-lists.html',
   styleUrl: './shopping-lists.css',
 })
 export class ShoppingLists implements OnInit {
   private readonly api = inject(ShoppingListsApi);
+  private readonly panels = viewChildren(ShoppingListPanel);
 
   protected readonly lists = signal<ShoppingList[]>([]);
   protected readonly loaded = signal(false);
@@ -47,12 +55,42 @@ export class ShoppingLists implements OnInit {
     });
   }
 
-  protected load(): void {
+  protected moveList(list: ShoppingList, to: number): void {
+    if (to < 0 || to >= this.lists().length) {
+      return;
+    }
+    this.api.updateList(list.id, { position: to }).subscribe({
+      next: () => {
+        this.error.set(null);
+        this.load();
+      },
+      error: () => {
+        this.error.set('Die Einkaufsliste konnte nicht verschoben werden.');
+        this.load(true);
+      },
+    });
+  }
+
+  protected dropped(event: CdkDragDrop<ShoppingList[]>): void {
+    if (event.previousIndex !== event.currentIndex) {
+      this.moveList(this.lists()[event.previousIndex], event.currentIndex);
+    }
+  }
+
+  protected onMoved(sourceId: string): void {
+    this.panels()
+      .find((panel) => panel.list().id === sourceId)
+      ?.reload();
+  }
+
+  protected load(keepError = false): void {
     this.api.findAllLists().subscribe({
       next: (lists) => {
         this.lists.set(lists);
         this.loaded.set(true);
-        this.error.set(null);
+        if (!keepError) {
+          this.error.set(null);
+        }
       },
       error: () => this.error.set('Die Einkaufslisten konnten nicht geladen werden.'),
     });

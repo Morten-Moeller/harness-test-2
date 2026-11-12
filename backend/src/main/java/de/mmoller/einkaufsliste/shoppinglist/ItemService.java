@@ -21,8 +21,11 @@ public class ItemService {
         return repository.save(listId, new Item(ids.next(), request.name(), request.quantity(), false));
     }
 
-    public boolean setDone(UUID listId, UUID id, boolean done) {
-        return repository.setDone(listId, id, done);
+    public UpdateResult update(UUID listId, UUID id, UpdateItemRequest request) {
+        if (!request.hasField()) {
+            return UpdateResult.INVALID;
+        }
+        return repository.update(listId, id, request.done(), request.position(), request.listId());
     }
 
     public Optional<List<Item>> findAll(UUID listId) {

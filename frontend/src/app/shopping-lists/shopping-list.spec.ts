@@ -287,3 +287,90 @@ describe('ShoppingListPanel with stored items', () => {
     expect(element().querySelector('.empty')?.textContent).toContain('Keine offenen Artikel.');
   });
 });
+
+describe('ShoppingListPanel moving items', () => {
+  let fixture: ComponentFixture<ShoppingListPanel>;
+  let http: HttpTestingController;
+
+  const eier = anItem({ id: '33333333-3333-3333-3333-333333333333', name: 'Eier' });
+  const element = (): HTMLElement => fixture.nativeElement as HTMLElement;
+  const rows = (): HTMLElement[] => Array.from(element().querySelectorAll<HTMLElement>('.item'));
+  const rowOf = (name: string): HTMLElement =>
+    rows().find((row) => row.querySelector('.item-name')?.textContent?.trim() === name)!;
+  const buttonIn = (row: HTMLElement, label: string): HTMLButtonElement =>
+    Array.from(row.querySelectorAll<HTMLButtonElement>('button.move')).find(
+      (b) => b.textContent?.trim() === label,
+    )!;
+
+  const load = async (items: Item[]): Promise<void> => {
+    http.expectOne({ method: 'GET', url: itemsUrl }).flush(items);
+    await fixture.whenStable();
+  };
+
+  beforeEach(async () => {
+    ({ fixture, http } = await createPanel());
+    await load([milch, brot, eier]);
+  });
+
+  afterEach(() => http.verify());
+
+  it('renders handle and move buttons per item', () => {
+    expect(rows().length).toBe(3);
+    for (const row of rows()) {
+      expect(row.querySelector('button.handle')?.getAttribute('aria-label')).toBe('Artikel ziehen');
+      expect(buttonIn(row, 'Nach oben')).toBeDefined();
+      expect(buttonIn(row, 'Nach unten')).toBeDefined();
+    }
+    expect(buttonIn(rowOf('Milch'), 'Nach oben').disabled).toBe(true);
+    expect(buttonIn(rowOf('Milch'), 'Nach unten').disabled).toBe(false);
+    expect(buttonIn(rowOf('Eier'), 'Nach unten').disabled).toBe(true);
+    expect(buttonIn(rowOf('Brot'), 'Nach oben').getAttribute('aria-label')).toBe('Nach oben: Brot');
+  });
+
+  it('moves an item up with the button', async () => {
+    buttonIn(rowOf('Brot'), 'Nach oben').click();
+
+    const request = http.expectOne({ method: 'PATCH', url: `${itemsUrl}/${brot.id}` });
+    expect(request.request.body).toEqual({ position: 0 });
+    request.flush(null, { status: 204, statusText: 'No Content' });
+    await fixture.whenStable();
+    await load([brot, milch, eier]);
+
+    expect(rows().map((row) => row.querySelector('.item-name')?.textContent?.trim())).toEqual([
+      'Brot',
+      'Milch',
+      'Eier',
+    ]);
+  });
+
+  it('moves only among open items while the filter is on', async () => {
+    const filter = element().querySelector<HTMLInputElement>(`#only-open-${rewe.id}`)!;
+    filter.checked = true;
+    filter.dispatchEvent(new Event('change'));
+    await fixture.whenStable();
+    expect(rows().length).toBe(2);
+
+    buttonIn(rowOf('Milch'), 'Nach unten').click();
+
+    const request = http.expectOne({ method: 'PATCH', url: `${itemsUrl}/${milch.id}` });
+    expect(request.request.body).toEqual({ position: 2 });
+    request.flush(null, { status: 204, statusText: 'No Content' });
+    await fixture.whenStable();
+    await load([brot, eier, milch]);
+  });
+
+  it('shows an error when moving fails', async () => {
+    buttonIn(rowOf('Milch'), 'Nach unten').click();
+
+    http
+      .expectOne({ method: 'PATCH', url: `${itemsUrl}/${milch.id}` })
+      .flush({}, { status: 500, statusText: 'Error' });
+    await fixture.whenStable();
+    await load([milch, brot, eier]);
+
+    expect(element().querySelector('.error')?.textContent).toContain(
+      'Der Artikel konnte nicht verschoben werden.',
+    );
+    expect(rows()[0].querySelector('.item-name')?.textContent).toContain('Milch');
+  });
+});

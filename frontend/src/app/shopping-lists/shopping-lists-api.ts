@@ -22,7 +22,7 @@ export class ShoppingListsApi {
     return this.http.post<ShoppingList>('/api/lists', request);
   }
 
-  renameList(id: string, request: UpdateShoppingListRequest): Observable<void> {
+  updateList(id: string, request: UpdateShoppingListRequest): Observable<void> {
     return this.http.patch<void>(`/api/lists/${id}`, request);
   }
 
@@ -38,7 +38,7 @@ export class ShoppingListsApi {
     return this.http.post<Item>(`/api/lists/${listId}/items`, request);
   }
 
-  setDone(listId: string, id: string, request: UpdateItemRequest): Observable<void> {
+  updateItem(listId: string, id: string, request: UpdateItemRequest): Observable<void> {
     return this.http.patch<void>(`/api/lists/${listId}/items/${id}`, request);
   }
 }
